@@ -1,0 +1,70 @@
+#!/bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:  supper.sh
+# Update: 20110325 13:40:16
+# (C) Copyright 2011 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Xterm drop down
+# Usage: gyr-xterm-drop-down
+#   add a shortcut (F1) to 'gyr-xterm-drop-down'
+#   add a shortcut (F2) to 'wmctrl -x -r Xtermgyr -b toggle,maximized_vert'
+#
+################################################################################
+
+[ "$1" = '--help' ] && { gyr-print-helper $0; exit 0; }
+
+# Always exit on errors
+set -e
+# Undefined variables, we don't like you
+set -u
+# ERR traps are inherited by shell functions, command substitutions and
+# commands executed in a subshell environment.
+set -E
+
+[ $# -ne 0 ] && { gyr-print -e ${0##*/} "Syntax error"; exit 1; }
+
+XTERM_DROPDOWN_CLASS='Xtermgyr'
+#get_pid() {
+#    DROP_DOWN_TERM_PID=$(ps -ef | grep -v grep | grep xterm | grep gyr-screen | tr -s ' ' | cut -d ' ' -f2)
+#}
+
+get_wid() {
+    DROP_DOWN_TERM_WID=$(xdotool search --class ${XTERM_DROPDOWN_CLASS} 2>/dev/null)
+#    if xdotool -v > /dev/null 2>&1; then
+#        DROP_DOWN_TERM_WID=$(xdotool search --pid ${DROP_DOWN_TERM_PID} 2>/dev/null)
+#    else
+#        for i in $(xwininfo -root -tree -int | tr -s ' ' | grep -w xterm | cut -d ' ' -f2); do
+#            if [ "$(xprop -id $i _NET_WM_PID | cut -d'=' -f2 | tr -d ' ')" = "${DROP_DOWN_TERM_PID}" ]; then
+#                DROP_DOWN_TERM_WID=$i
+#                return
+#            fi
+#        done
+#    fi
+}
+
+#get_pid
+#if [ -z "${DROP_DOWN_TERM_PID}" ]; then
+get_wid
+if [ -z "${DROP_DOWN_TERM_WID}" ]; then
+    xterm -class ${XTERM_DROPDOWN_CLASS} -e /work/gyr/.gyr.d/scripts/gyr-screen XTERMDROPDOWN &
+    #get_pid
+    sleep 0.1
+    get_wid
+    xdotool windowmove ${DROP_DOWN_TERM_WID} 0 0
+    xdotool windowsize --usehints ${DROP_DOWN_TERM_WID} 205 40
+else
+    #get_wid
+    if [ "$(xdotool getactivewindow 2>/dev/null)" = "${DROP_DOWN_TERM_WID}" ]; then
+        xdotool windowunmap ${DROP_DOWN_TERM_WID}
+    else
+        DESKTOP_NUM=$(xdotool get_desktop)
+        xdotool windowmap ${DROP_DOWN_TERM_WID}
+        xdotool windowmove ${DROP_DOWN_TERM_WID} 0 0
+        xdotool windowsize --usehints ${DROP_DOWN_TERM_WID} 205 40
+        xdotool set_desktop_for_window ${DROP_DOWN_TERM_WID} ${DESKTOP_NUM}
+        xdotool windowactivate ${DROP_DOWN_TERM_WID}
+    fi
+fi

@@ -1,0 +1,97 @@
+#!/bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:  gyr-awesome-startup
+# Update: 20110401 16:42:50
+# (C) Copyright 2011 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Awesome startup file, MUST only be used in ~/.config/awesome/rc.lua
+# Usage: gyr-awesome-startup
+#
+################################################################################
+
+[ "$1" = '--help' ] && { gyr-print-helper $0; exit 0; }
+
+[ $# -ne 0 ] && { gyr-print -e ${0##*/} "Syntax error"; exit 1; }
+
+start_app()
+{
+    if which $1 > /dev/null 2>&1; then
+        local PID_COMMAND=$(pgrep -f -u ${USER} -x "$*")
+        if [ -z "${PID_COMMAND}" ]; then
+            $* &
+        fi
+    fi
+}
+
+#start_app "yeahconsole -e /work/gyr/.gyr.d/scripts/gyr-screen -z"
+
+#CPU_NUMBER=$(cat /proc/cpuinfo | grep processor | wc -l)
+APP_LIST=(
+    "/usr/bin/gnome-keyring-daemon --start --components=gpg" \
+    "/usr/bin/gnome-keyring-daemon --start --components=pkcs11" \
+    "/usr/bin/gnome-keyring-daemon --start --components=ssh" \
+    "/usr/bin/gnome-keyring-daemon --start --components=secrets" \
+    "/usr/lib/notification-daemon/notification-daemon" \
+    "wicd-client -t" \
+    "xfce4-power-manager"\
+    "xscreensaver -nosplash" \
+    "volumeicon" \
+    "synapse --startup" \
+    "zeitgeist-datahub")
+#    "conky -d -p 2 -c ${HOME}/.gyr.d/dotfiles/conkyrc-2cpu-awesome" \
+#    "/usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1" \
+#    "start-pulseaudio-x11" \
+#gnome
+#    "nm-applet --sm-disable" \
+#    "/usr/bin/gnome-keyring-daemon --daemonize --login " \
+#    "/usr/lib/gnome-settings-daemon/gnome-settings-daemon" \
+#    "gnome-screensaver" \
+#    "/usr/lib/gnome-disk-utility/gdu-notification-daemon" \
+#    "xdg-user-dirs-gtk-update")
+#    "gnome-power-manager" \
+#gnome 2.x
+#    "gnome-volume-control-applet" \
+#gnome 3
+#    "gnome-sound-applet" \
+APP_LIST_LEN=${#APP_LIST[*]}
+
+for (( i = 0; i < ${APP_LIST_LEN}; i++ )); do
+    start_app ${APP_LIST[$i]}
+done
+
+set b off
+
+#/bin/sh -c 'test -e /var/cache/jockey/check || exec jockey-gtk --check'
+
+
+#Certificate and Key Storage
+#/usr/bin/gnome-keyring-daemon --start --components=pkcs11
+#GNOME Settings Daemon
+#/usr/lib/gnome-settings-daemon/gnome-settings-daemon
+#GPG Password Agent
+#gnome-keyring-daemon --start --components=gpg
+#Network
+#nm-applet
+#Notification Daemon
+#/usr/lib/notification-daemon/notification-daemon
+#PolicyKit Authentication Agent
+#/usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1
+#Power Manager
+#gnome-power-manager
+#PulseAudio Sound System
+#start-pulseaudio-x11
+#Screensaver
+#gnome-screensaver
+#Secret Storage Service
+#/usr/bin/gnome-keyring-daemon --start --components=secrets
+#SSH Key Agent
+#/usr/bin/gnome-keyring-daemon --start --components=ssh
+#Synapse
+#synapse --startup
+#Volume Control
+#gnome-volume-control-applet
+#Zeitgeist Datahub
+#zeitgeist-datahub

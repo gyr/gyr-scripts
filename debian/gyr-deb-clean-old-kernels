@@ -1,0 +1,34 @@
+#!/bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:  gyr-deb-clean-old-kernels
+# Update: 20110315 14:23:17
+# (C) Copyright 2010 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Delete old kernels
+# Usage: gyr-deb-clean-old-kernels
+#
+################################################################################
+
+[[ $# -eq 1 && $1 == "--help" ]] && { gyr-print-helper $0; exit 0; }
+
+CURRENT_KERNEL=$(uname -r|sed 's/-*[a-z]//g'|sed 's/-386//g')
+LINUX_PKG="linux-(image|headers|ubuntu-modules|restricted-modules)"
+META_LINUX_PKG="linux-(image|headers|restricted-modules)-(generic|i386|server|common|rt|xen)"
+OLD_KERNELS=$(dpkg -l|awk '{print $2}'|grep -E $LINUX_PKG |grep -vE $META_LINUX_PKG|grep -v $CURRENT_KERNEL|tr '\n' ' ')
+
+#CURRENT_KERNEL=$(uname -r)
+#OLD_KERNEL_LIST=$(ls /boot | grep vmlinuz | sed 's/vmlinuz/linux-image/' | grep -v $(uname -r))
+
+
+gyr-print -i "Current kernel: ${CURRENT_KERNEL}"
+
+gyr-print -i "Old kernels: ${OLD_KERNELS}"
+
+if [ -z "${OLD_KERNELS}" ]; then
+    gyr-print -i "There is no old kernel!"
+else
+    gyr-print -i "sudo apt-get autoremove --purge ${OLD_KERNELS} && sudo update-grub"
+fi

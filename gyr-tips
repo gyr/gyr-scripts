@@ -1,0 +1,194 @@
+#!/usr/bin/less +2
+==================================================
+* Trocando regex: (pode ser no vim ou sed)
+gyr@stanley% echo "antes, depois" | sed -e 's/\([^,]*\), \(.*$\)/\2 \1/'
+depois antes
+
+==================================================
+* Sending " or ' via ssh command:
+gyr@stanley$ ssh 9.18.253.187 echo \''OK teste aspas "bla"'\'
+gyr@9.18.253.187's password:
+OK teste aspas "bla"
+
+gyr@stanley$ ssh 9.18.253.187 echo \""OK teste aspas 'bla'"\"
+
+==================================================
+whatis: Display a summary of a command (rather than the entire manual)
+apropos: Display a list of commands that pertain to (are apropos to) a keyword
+whereis:  Display information about the location of a command: the executable, the source code (if any), and the man pages.
+which: Display which version of a command will execute (for when there are two, or more, commands with the same name installed on the system).
+type -a:
+
+==================================================
+Make Any Linux Directory into an ISO File
+mkisofs -V LABEL -r DIRECTORY | gzip > cdrom.iso.gz
+
+==================================================
+ssh-keygen; ssh-copy-id user@host; ssh user@host
+    |             |                 |
+    |             |                  --> login throw ssh
+    |              --> copy the public key to remote host at ~/.ssh/authorized_keys
+     --> create keypair
+
+==================================================
+Transfer large files/directories with no overhead over the network
+ssh user@host "cd targetdir; tar cfp - *" | dd of=file.tar
+or
+ssh user@host "cd dir; tar cfp - *" | gzip - > file.tar.gz
+
+==================================================
+Se esquecer o nohup:
+^Z
+bg
+disown
+Porem o output sera perdido
+
+==================================================
+Interessante o parametro "-I" no xargs:
+find -maxdepth 1 -name '*' -type d -print0 | xargs -0 -I {} echo "->" {}
+find -maxdepth 1 -name '*' -type d -print0 | xargs -0 echo "->" {}
+
+==================================================
+xargs support -P / parallelism.
+
+ls | head | xargs -n1 -I{} -P1 bash -c 'echo Sleep 1 - $$ ; sleep 1'
+
+ls | head | xargs -n1 -I{} -P5 bash -c 'echo Sleep 1 - $$ ; sleep 1'
+
+==================================================
+
+Edit the /etc/sudoers config file the right way.
+$ visudo
+
+==================================================
+Merge *.pdf files
+$ gs -q -sPAPERSIZE=letter -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=out.pdf `ls *.pdf`
+
+Merge all pdf files in the directory into one pdf file (the out.pdf file)
+
+==================================================
+Convert your favorite image in xpm for using in grub
+$ convert image123.png -colors 14 -resize 640x480 grubimg.xpm
+
+* size must be 640?480 pixels
+
+* only has 14 colors
+
+* save it in XPM format
+
+Edit /boot/grub/menu.lst and add
+
+splashimage=(hd0,0)/boot/grub/grubimg.xpm
+
+make sure for your path name and hard disk
+
+==================================================
+Convert images to a multi-page pdf
+$ convert -adjoin -page A4 *.jpeg multipage.pdf
+
+==================================================
+Make 'less' behave like 'tail -f'.
+$ less +F somelogfile
+
+Using +F will put less in follow mode. This works similar to 'tail -f'. To stop scrolling, use the interrupt. Then you'll get the normal benefits of less (scroll, etc.).
+
+Pressing SHIFT-F will resume the 'tailling'.
+
+==================================================
+uniq for unsorted data
+awk '!_[$0]++{print}'
+awk '!_[$0]++'
+
+==================================================
+purge all packages marked with 'rc'
+$ sudo dpkg --purge `dpkg -l | awk '/^rc/{print $2}'`
+
+After you install/remove lots of packages, there are many packages marked with 'rc'. This script help you to purge these packages, it will save some spaces from your disk.
+
+==================================================
+pattern match in awk
+awk '/pattern1/ && /pattern2/ && !/pattern3/ {print}'
+
+==================================================
+awk using multiple field separators
+awk -F "=| "
+
+==================================================
+loop over a set of items that contain spaces
+$ ls | while read DIR; do echo "$DIR"; done
+
+If you want to operate on a set of items in Bash, and at least one of them contains spaces, the `for` loop isn't going to work the way you might expect. For example, if the current dir has two files, named "file" and "file 2", this would loop 3 times:
+$ for FILE in `ls`; do echo "$FILE"; done
+
+Instead, use a while loop with `read`:
+$ ls | while read FILE; do echo "$FILE"; done
+
+==================================================
+Display laptop battery information
+$ cat /proc/acpi/battery/BAT1/info
+
+Displays all information about your battery. for just capacity, try replacing cat with
+$grep -F capacity:
+
+Battery number might be BAT0 instead of BAT1. Just run
+$cd /proc/acpi/battery; ls
+
+and find out what folder is in that directory and replace that name with BAT1
+
+==================================================
+It will be nice if we can edit binary file directly in vim. VIM provides basic support which has a few restrictions.
+(1) Open a binary file
+    vim -b datafile
+or
+    :set binary
+(2) Many characters are unprintable. You can see the Hex format by using:
+    :set display=uhex
+Or you can use ga command to see the value of current character.
+(3) To see current position, use
+    g CTRL-G
+The output is verbose:
+    Col 6 of 38; Line 31 of 31; Word 94 of 96; Byte 747 of 780
+(4) Move to a specific byte offset:
+    234go
+(5) xxd can be used to convert the file into hex dump format
+    %!xxd
+Result should look like this:
+    0000000: 6262 630a 6465 660a 6768 696b 0aab de0a  bbc.def.ghik....
+There are two parts: hex part and printable character part.
+Go back:
+    %!xxd -r
+Note: only changes in hex part have effect. Changes in printable text part are ignored.
+
+Of course, tool xxd can be used independently in command line.
+
+==================================================
+Copy files over network using compression
+on the listening side: sudo nc -lp 2022 | sudo tar -xvf -
+on the sending side: tar -cvzf - ./*| nc -w 3 name_of_listening_host 2022
+
+==================================================
+Ver libs:
+ldd (se a biblioteca for utilizada dinamicamente (dlopen), ldd não vai mostra-las)
+strace <app> 2>&1 | grep open
+strings <app> | grep '.so'
+
+==================================================
+Enable composting in gnome:
+gconftool-2 -s --type bool /apps/metacity/general/compositing_manager true
+
+==================================================
+Open a URL on your preferred browser, desktop independent:
+xdg-open URL
+
+Open a URL on your preferred browser on gnome:
+gnome-open URL
+
+==================================================
+Using Python to copy files between computers
+
+Another great one liner is "python -m SimpleHTTPServer". This starts an http server
+listening on port 8000 that will serve files within the current directory.
+Just point your browser at http://serverip:8000!
+
+==================================================
+Use ~-/ to refer to the last directory you were in: "cd woo/; cd ../yay/; cp ~-/foo.txt .;" will copy foo.txt from woo/ to yay/

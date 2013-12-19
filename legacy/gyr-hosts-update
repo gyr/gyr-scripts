@@ -1,0 +1,109 @@
+#!/usr/bin/sudo /bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:  gyr-update-hosts
+# Update: 20110810
+# Based on https://www.ibm.com/developerworks/mydeveloperworks/blogs/752a690f-8e93-4948-b7a3-c060117e8665/entry/navegacao_mais_segura_e_rapida_com_um_bom_arquivo_hosts?lang=en
+# (C) Copyright 2011 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description:
+# Usage:
+#
+################################################################################
+
+# upd_hostsfile
+
+######################################
+# This script downloads the latest
+# version of MVPS' hosts file and
+# appends it to our /etc/hosts file.
+#   It first checks if there's been
+# any changes and, if so, copies the
+# updated version over the old one.
+#####################################
+# This script is meant to be run as a
+# cron job, so NO INTERACTION is
+# allowed.
+#####################################
+
+
+#####################################
+# Root check!
+####################################
+#[ "${UID}" -ne "0" ] && echo "You must be root to run this program" && exit 3
+
+
+#####################################
+# Config section
+####################################
+
+# Choose you downloader program.
+#DOWNLOADER="/usr/bin/curl"
+#DOWNLOADER="/usr/bin/filezilla"
+DOWNLOADER="/usr/bin/wget --quiet"
+
+# Downloader options
+#DOWNLOADEROPTS="--proxy-user=johnsmith --proxy-password=secret"
+
+# Dos2Unix utility (MVPS releases its hosts file as a DOS-formatted text file
+#DOS2UNIX="/usr/bin/dos2unix"
+DOS2UNIX="/usr/bin/fromdos"
+
+# Diff utility location
+DIFF="/usr/bin/diff -q"
+
+# Unzip utility location. Unzip to stdout, please.
+UNZIP="/usr/bin/unzip -qq -a -c"
+
+# Location of your hosts file. Don't change this unless you KNOW what you're doing
+HOSTSFILE="/etc/hosts"
+#HOSTSFILE="/tmp/hosts"
+
+# Feel free to choose any other path & filename for the downloaded file
+LATESTDOWNLOAD="/etc/MVPS-hosts.zip"
+#LATESTDOWNLOAD="/tmp/MVPS-hosts.zip"
+
+# Change this _ONLY IF_ mvps changes it, or if you prefer to use another hosts file provider
+URL="http://www.mvps.org/winhelp2002/hosts.zip"
+
+# MVPS' hosts file lives within a ZIP archive and is called HOSTS
+FILEWITHINARCHIVE="HOSTS"
+
+# Where downloads should be kept temporarily while they get tested for updates
+DOWNLOADFILENAME="/tmp/MVPS-hosts.zip"
+#DOWNLOADFILENAME="/tmp/MVPS-hosts_new.zip"
+
+
+####################################
+# Let the games begin
+###################################
+
+# First, download the latest hosts file.
+${DOWNLOADER} ${DOWNLOADEROPTS} "${URL}" -O "${DOWNLOADFILENAME}" || ( echo "Download failed. Abort." >/dev/stderr ; exit 1 )
+
+
+# Now check it against the latest downloaded hosts file
+if ${DIFF} "${DOWNLOADFILENAME}" "${LATESTDOWNLOAD}" 2>/dev/null ; then
+    # Successful diff means files are equal
+    echo "No change in hosts file."
+    exit 0
+
+else    # Failed diff may also mean there's no previous downloaded hosts file
+
+    # Copy our newly downloaded file to its due location
+    cp "${DOWNLOADFILENAME}" "${LATESTDOWNLOAD}"
+
+    # Back it up & get only what's **above** MVPS' section
+    sed -i.$(date +%Y%m%d_%H%M%S).bak -e '/# This MVPS HOSTS/,//d' "${HOSTSFILE}"
+
+    # Unzip only the file we want
+    ${UNZIP} "${DOWNLOADFILENAME}" ${FILEWITHINARCHIVE} >> "${HOSTSFILE}" && \
+        echo "${HOSTSFILE} updated on `date`" && rm "${DOWNLOADFILENAME}" || \
+        (
+    echo "Append failed. Abort." ;
+    exit 2
+    )
+fi
+exit 0

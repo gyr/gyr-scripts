@@ -1,0 +1,159 @@
+#!/bin/bash
+##################################
+#
+# Author: Gustavo Yokoyama Ribeiro
+# File:   gyr-echo
+# Update: 20100815 14:12:09
+# (C) Copyright 2010 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Display text in color
+# Usage: gyr-echo [fg] [bg] [attr] <text>
+#   attr
+#       reset|normal
+#       fgbright
+#       dim - low intensity
+#       italic
+#       underline
+#       bgbright
+#       blink
+#       reverse
+#       hidden
+#   Colors:
+#       black
+#       red
+#       green
+#       yellow
+#       blue
+#       magenta
+#       cyan
+#       white
+#
+##################################
+
+# Style                                   Foreground      Background
+# 1st Digit                               2nd Digit       3rd Digit
+# 0 - Reset                               30 - Black      40 - Black
+# 1 - FG Bright                           31 - Red        41 - Red
+# 2 - Dim (low intensity - half bright)   32 - Green      42 - Green
+# 3 - Italic                              33 - Yellow     43 - Yellow
+# 4 - Underline                           34 - Blue       44 - Blue
+# 5 - BG Bright                           35 - Magenta    45 - Magenta
+# 6 - Blink                               36 - Cyan       46 - Cyan
+# 7 - Reverse                             37 - White      47 - White
+# 8 - Hidden (invisible)
+#   - Bold
+
+[ "$1" = '--help' ] && { gyr-print-helper $0; exit 0; }
+
+# Always exit on errors
+set -e
+# Undefined variables, we don't like you
+set -u
+# ERR traps are inherited by shell functions, command substitutions and
+# commands executed in a subshell environment.
+set -E
+
+[ $# -lt 1 -a $# -gt 4 ] && { gyr-print -e ${0##*/}; exit 1; }
+
+RST_COLOR="[0;;m"
+#RST_COLOR=$(tput sgr0)
+
+parseColor() {
+    case $1 in
+        black)
+            echo 0
+        ;;
+        red)
+            echo 1
+        ;;
+        green)
+            echo 2
+        ;;
+        yellow)
+            echo 3
+        ;;
+        blue)
+            echo 4
+        ;;
+        magenta)
+            echo 5
+        ;;
+        cyan)
+            echo 6
+        ;;
+        white)
+            echo 7
+        ;;
+        *)
+            return 1
+        ;;
+    esac
+}
+
+parseStyle() {
+    case $1 in
+        reset|normal)
+            echo 0
+#            echo "sgr0"
+        ;;
+        fgbright)
+            echo 1
+        ;;
+#        bold)
+#            echo "bold"
+#        ;;
+        dim)
+            echo 2
+#            echo "dim"
+        ;;
+        italic)
+            echo 3
+#            echo "sitm"
+        ;;
+        underline)
+            echo 4
+#            echo "smul"
+        ;;
+        bgbright)
+            echo 5
+        ;;
+        blink)
+            echo 6
+#            echo "blink"
+        ;;
+        reverse)
+            echo 7
+#            echo "rev"
+        ;;
+        hidden)
+            echo 8
+#            echo "invis"
+        ;;
+        *)
+            return 1
+        ;;
+    esac
+}
+
+if [[ $# -eq 1 ]]; then
+    FG_CLR=1
+    BG_CLR=0
+    STYLE=1
+#    STYLE="sgr0"
+    TEXT=$1
+else
+    FG_CLR=$(parseColor $1) || { gyr-print -e ${0##*/} "Unkown foreground color."; exit 1; }
+    BG_CLR=$(parseColor $2) || { gyr-print -e ${0##*/} "Unkown background color."; exit 1; }
+    STYLE=$(parseStyle $3) || { gyr-print -e ${0##*/} "Unkown color style."; exit 1; }
+    TEXT=$4
+fi
+
+[[ ${FG_CLR} = [0-9] ]] && FG_CLR=3${FG_CLR}
+#[[ ${FG_CLR} = [0-7] ]] && FG_CLR=$(tput setaf ${FG_CLR})
+[[ ${BG_CLR} = [0-9] ]] && BG_CLR=4${BG_CLR}
+#[[ ${BG_CLR} = [0-7] ]] && BG_CLR=$(tput setab ${BG_CLR})
+#STYLE=$(tput ${STYLE})
+
+echo "[${STYLE};${FG_CLR};${BG_CLR}m${TEXT}${RST_COLOR}"
+#echo "${STYLE}${FG_CLR}${BG_CLR}${TEXT}${RST_COLOR}"

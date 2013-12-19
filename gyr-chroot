@@ -1,0 +1,52 @@
+#!/bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:  gyr-chroot
+# Update: 20100815 13:52:11
+# (C) Copyright 2010 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: start a chroot environment
+# Usage: gyr-chroot [mounting_point]
+#
+################################################################################
+
+[ "$1" = '--help' ] && { gyr-print-helper $0; exit 0; }
+
+# Always exit on errors
+set -e
+# Undefined variables, we don't like you
+set -u
+# ERR traps are inherited by shell functions, command substitutions and
+# commands executed in a subshell environment.
+set -E
+
+[ $# -gt 1 ] && { gyr-print -e ${0##*/}; exit 1; }
+
+MOUNTING_POINT='/mnt'
+read -e -p "Mounting point [/mnt] : "
+
+if [ ! -z "${REPLY}" ]; then
+    MOUNTING_POINT=${REPLY}
+fi
+if [ ! -d "${REPLY}" ];then
+    exit 1
+fi
+
+sudo mount --bind /dev ${MOUNTING_POINT}/dev
+#sudo mount --bind /proc ${MOUNTING_POINT}/proc
+sudo cp /etc/resolv.conf ${MOUNTING_POINT}/etc/
+#sudo cp /etc/hosts ${MOUNTING_POINT}/etc/
+sudo chroot ${MOUNTING_POINT} <<EOF
+mount -t proc none /proc
+mount -t sysfs none /sys
+mount -t devpts none /dev/pts
+EOF
+sudo chroot ${MOUNTING_POINT}
+sudo chroot ${MOUNTING_POINT} <<EOF
+umount -lf /proc
+umount /sys
+umount /dev/pts
+EOF
+sudo umount -lf ${MOUNTING_POINT}/dev

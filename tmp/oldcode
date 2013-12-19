@@ -1,0 +1,25 @@
+all: programa simples para testar a endianidade da máquina         unsigned char endian[2] = {1, 0};
+<danfaria>         short x;
+<danfaria>         x = *(short *) endian;
+<danfaria>         printf ("%d", x);
+<danfaria> se rodar num little-endian (tipo intel) ele imprime 1, se rodar num big-endian (tipo power), ele imprime 256
+<azanella> danfaria, tem uma versão diferente para vc
+<azanella> #include <stdio.h>
+<azanella> #include <endian.h>
+<azanella> int main()
+<azanella> {
+<azanella>   enum endian_t
+<azanella>   {
+<azanella>     BIG, LITTLE
+<azanella>   } endian;
+<azanella> #if __BYTE_ORDER == __LITTLE_ENDIAN
+<azanella>   endian = LITTLE;
+<azanella> #else
+<azanella>   endian = BIG;
+<azanella> #endif
+<azanella>   if (endian == LITTLE)
+<azanella>     printf("LITTLE ENDIAN\n");
+<azanella>   else
+<azanella>     printf("BIG ENDIAN\n");
+<azanella>   return 0;
+<azanella> }

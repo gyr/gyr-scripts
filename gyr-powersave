@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Enable USB autosuspend
+for i in /sys/bus/usb/devices/*/power/autosuspend; do echo 1 > $i; done
+
+# Enable SATA Power Management
+for h in /sys/class/scsi_host/*/link_power_management_policy; do echo min_power > $h; done
+
+# Disable WOL 
+ethtool -s em1 wol 
+
+# Enable Power Aware CPU scheduler 
+echo 1 > /sys/devices/system/cpu/sched_mc_power_savings
+
+# Enable Audio codec power management
+echo 1 > /sys/module/snd_hda_intel/parameters/power_save
+echo Y > /sys/module/snd_hda_intel/parameters/power_save_controller
+
+# Enable power management for all PCI devices
+for c in  /sys/bus/pci/devices/*/power/control; do echo auto > $c; done
+
+# Extend VM writeback timeout
+echo 1500 > /proc/sys/vm/dirty_writeback_centisecs
+
+# Disable NMI watchdog
+echo 0 > /proc/sys/kernel/nmi_watchdog
+echo 0 > /proc/sys/kernel/watchdog
+# or added to /etc/sysctl.conf
+# kernel.nmi_watchdog = 0
+# kernel.watchdog = 0
+# vm.dirty_writeback_centisecs = 1500

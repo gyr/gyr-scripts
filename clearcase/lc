@@ -1,0 +1,267 @@
+#!/bin/ksh
+if [ $# -eq 0 ]
+then
+    echo "Counts source code lines for C and C++ files."
+    echo
+    echo "Usage: lc [-apsc] [-l <base label>| -b <base branch>] {<file, ...>|<branch>}"
+    echo "       -a also counts the assember equivalent source code lines"
+    echo "       -p reports only the project metric (i.e. total for all files)"
+    echo "       -s for a submetric of added and changed lines only"
+    echo "       -c use checkedout files (proper view should be already set)"
+    echo
+    echo "       -l used for differential line count to indicate the base label"
+    echo "       -b used for differential line count to indicate the base branch"
+    echo
+    echo "       base label  - indicates the base label when -l is used"
+    echo "       base branch - indicates the base branch when -b is used"
+    echo
+    echo "Examples:"
+    echo
+    echo "  lc app_wvim.cpp app_wvim_init.cpp"
+    echo "  counts the source lines in the two files"
+    echo
+    echo "  lc -l IMPS_N_06.10.10I libxx0000_zbr05_wec014"
+    echo "  counts the branch changes against the label"
+    echo
+    echo "  lc libxx0000_zbr05_wec014"
+    echo "  counts the branch changes against bubble 0"
+    echo
+    echo "  lc -l IMPS_N_06.10.10I app_wvim.cpp"
+    echo "  counts the file changes against the label"
+    echo
+    exit
+fi
+
+debug=false
+success=true
+aencsl_option=""
+diff_count_label=false
+diff_count_branch=false
+diff_count_branch_bubble0=false
+file_option="-r file"
+submetric=""
+checkedout_option=""
+
+while $success && getopts blapscd option; do
+    case $option in
+    a) aencsl_option="-m aencsl"
+       ;;
+    l) diff_count_label=true
+       ;;
+    b) diff_count_branch=true
+       ;;
+    p) file_option=""
+       ;;
+    s) submetric="--submetric add --submetric change"
+       ;;
+    c) checkedout_option="-c"
+       ;;
+    d) debug=true
+       ;;
+    ?) success=false
+       ;;
+    esac
+done
+
+if $success
+then
+    shift $(( OPTIND - 1))
+
+    if [[ $diff_count_label = false && $diff_count_branch = false ]]
+    then
+        if [ ! -f $1 ]
+        then
+            diff_count_branch_bubble0=true
+        fi
+    fi
+
+    if [[ $diff_count_label = true || $diff_count_branch = true || $diff_count_branch_bubble0 = true ]]
+    then
+
+        if $diff_count_label
+        then
+            diff_label=$1;
+        else
+            diff_branch=$1;
+            base_file_list=$(/home/sw/wec014/bin/findbr $checkedout_option $diff_branch | grep -v "not a vob:" | sort)
+        fi
+
+        if [[ $diff_count_branch_bubble0 = true ]]
+        then
+            file_list=$(/home/sw/wec014/bin/findbr $checkedout_option $1 | grep -v "not a vob:" | sort)
+        else
+            if [ -f $2 ]
+            then
+                all_parms=$@;
+                file_list=${all_parms#$1};
+            else
+                file_list=$(/home/sw/wec014/bin/findbr $checkedout_option $2 | grep -v "not a vob:" | sort)
+            fi
+        fi
+
+        project_file="linecount_new.dlc"
+        base_project_file="linecount.dlc"
+
+        echo languages: c c++ >> $project_file
+        echo scmdelimiter: @@ >> $project_file
+        echo c.parser: c >> $project_file
+        echo c++.parser: c >> $project_file
+        echo c.suffixes: c >> $project_file
+        echo c++.suffixes: cc cpp h H >> $project_file
+        echo list: %START% >> $project_file
+
+        echo languages: c c++ >> $base_project_file
+        echo scmdelimiter: @@ >> $base_project_file
+        echo c.parser: c >> $base_project_file
+        echo c++.parser: c >> $base_project_file
+        echo c.suffixes: c >> $base_project_file
+        echo c++.suffixes: cc cpp h H >> $base_project_file
+        echo list: %START% >> $base_project_file
+
+        for file in $file_list; do
+            if [[ $file != *@@* ]]
+            then
+                file=$(cleartool ls -s $file)
+            fi
+            file_name=${file%%@@*}
+            extension=${file_name##*.}
+            if [[ $extension = "c" || $extension = "h" || $extension = "cc" || $extension = "H" || $extension = "cpp" ]]
+            then
+
+                file_full_version=${file##*@@}
+                if [[ $file_full_version = "" ]]
+                then
+                    echo $file >> $project_file
+                else
+                    file_version=${file##*/}
+                    if [[ $file_version = "CHECKEDOUT" ]]
+                    then
+                        echo $file_name >> $project_file
+                    else
+                        echo $file >> $project_file
+                    fi
+                fi
+
+                if $diff_count_label
+                then
+                    if [ -f $file_name"@@/"$diff_label ]
+                    then
+                        echo $file_name"@@/"$diff_label >> $base_project_file
+                    else
+                        file_dir=${file_name##*/}
+                        if [[ $file_dir = "" ]]
+                        then
+                            file_dir=$(pwd)
+                        fi
+                        if [ ! -d $file_dir"@@/"$diff_label ]
+                        then
+                           echo ${file%/*}/0 >> $base_project_file
+                        fi
+                    fi
+                else
+                    for base_file in $base_file_list; do
+                        base_file_found=false
+                        base_file_name=${base_file%%@@*}
+                        base_extension=${base_file_name##*.}
+                        if [[ $base_extension = $extension  &&  $base_file_name = $file_name ]]
+                        then
+                            if [[ $diff_count_branch_bubble0 = true ]]
+                            then
+                                echo ${base_file%/*}/0 >> $base_project_file
+                                base_file_found=true;
+                            else
+                                echo $base_file >> $base_project_file
+                                base_file_found=true;
+                            fi
+                        fi
+                        if [ ! $base_file_found ]
+                        then
+                            base_file_dir=${file_name##*/}
+                            if [[ $base_file_dir = "" ]]
+                            then
+                                base_file_dir=$(pwd)
+                            fi
+                            base_dir_found=false
+                            for base_dir in $base_file_list; do
+                                base_dir_name=${base_dir%%@@*}
+                                base_dir_dir=${base_dir_name##*/}
+                                if [[ $base_dir_dir = $base_file_dir ]]
+                                then
+                                    base_dir_found=true
+                                fi
+                            done
+                            if $base_dir_found
+                            then
+                               echo ${base_file%/*}/0 >> $base_project_file
+                            fi
+                        fi
+                    done
+                fi
+            fi
+        done
+
+        echo %END% >> $project_file
+        echo %END% >> $base_project_file
+
+        if [[ $debug = false ]]
+        then
+            dlc $file_option $submetric -r project -m code $aencsl_option $base_project_file $project_file
+            chmod u+w $base_project_file $project_file
+            rm $base_project_file $project_file
+        else
+            echo "dlc $file_option $submetric -r project -m code $aencsl_option $base_project_file $project_file"
+        fi
+
+    else
+
+        if [ -f $1 ]
+        then
+            file_list=$@
+        else
+            file_list=$(/home/sw/wec014/bin/findbr $checkedout_option $1 | grep -v "not a vob:" | sort)
+        fi
+
+        project_file="linecount.dlc"
+
+        echo languages: c c++ >> $project_file
+        echo scmdelimiter: @@ >> $project_file
+        echo c.parser: c >> $project_file
+        echo c++.parser: c >> $project_file
+        echo c.suffixes: c >> $project_file
+        echo c++.suffixes: cc cpp h H >> $project_file
+        echo list: %START% >> $project_file
+
+        for file in $file_list
+        do
+            file_name=${file%%@@*}
+            extension=${file_name##*.}
+            if [[ $extension = "c" || $extension = "h" || $extension = "cc" || $extension = "H" || $extension = "cpp" ]]
+            then
+                file_full_version=${file##*@@}
+                if [[ $file_full_version = "" ]]
+                then
+                    echo $file >> $project_file
+                else
+                    file_version=${file##*/}
+                    if [[ $file_version = "CHECKEDOUT" ]]
+                    then
+                        echo $file_name >> $project_file
+                    else
+                        echo $file >> $project_file
+                    fi
+                fi
+            fi
+        done
+
+        echo %END% >> $project_file
+
+        if [[ $debug = false ]]
+        then
+            dlc $file_option -r project -m code $aencsl_option $project_file
+            chmod u+w $project_file
+            rm $project_file
+        else
+            echo "dlc $file_option -r project -m code $aencsl_option $project_file"
+        fi
+    fi
+fi

@@ -1,0 +1,36 @@
+#!/bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:  ubuntu-image-edit
+# Description: Edit a ISO image.
+# Usage: ubuntu-image-edit
+#
+################################################################################
+
+
+#. ${0%/*}/ubuntu-image-conffile
+. ~/.gyr.d/scripts/debian/gyr-ubuntu-image-conffile
+
+echo "*** Mounting ${EDIT_DIR}/dev..."
+sudo mount --bind /dev/ ${EDIT_DIR}/dev\
+    && echo "...DONE"\
+    || echo "...FAILED"
+
+echo "*** Preparing chroot..."
+sudo cp /etc/resolv.conf ${EDIT_DIR}/etc/
+[ -f ${EDIT_DIR}/etc/hosts ] && sudo mv ${EDIT_DIR}/etc/hosts ${EDIT_DIR}/etc/hosts.orig
+sudo cp /etc/hosts ${EDIT_DIR}/etc/
+sudo chroot ${EDIT_DIR} <<EOF
+mount -t proc none /proc
+mount -t sysfs none /sys
+mount -t devpts none /dev/pts
+export HOME=/root
+export LC_ALL=C
+dbus-uuidgen > /var/lib/dbus/machine-id
+dpkg-divert --local --rename --add /sbin/initctl
+ln -s /bin/true /sbin/initctl
+EOF
+echo "...DONE"
+
+sudo chroot ${EDIT_DIR}

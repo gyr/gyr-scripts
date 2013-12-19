@@ -1,0 +1,79 @@
+#!/bin/bash -e
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+ibm AT gmail DOT com>
+# File:  ubuntu-image-start
+# Description: Prepare a ISO image to be edited.
+# Usage: ubuntu-image-start
+#
+################################################################################
+
+
+#. ${0%/*}/ubuntu-image-conffile
+. ~/.gyr.d/scripts/debian/gyr-ubuntu-image-conffile
+
+echo "ISO image to be used: ${BASE_ISO}"
+read -p "OK? [Yn] "
+if [[ "${REPLY}" =~ [Nn] ]];then
+    read -p "Enter new ISO image (full path): "
+    if [ -z "${REPLY}" -o ! -f ${REPLY} ]; then
+        echo "Invalid ISO image ${REPLY}"
+        exit 1
+    else
+        BASE_ISO=${REPLY}
+        echo "New ISO image: ${BASE_ISO}"
+        if [ ! -f "${BASE_ISO}" ]; then
+            echo "Invalid ISO image!"
+            exit 1
+        fi
+    fi
+fi
+
+if [ -d ${BASE_DIR} ]; then
+    echo "WARNNING: previous ISO directory ${BASE_DIR} found!"
+    read -p "Delete ${BASE_DIR}? [yN] "
+    if [[ "${REPLY}" =~ [Yy] ]]; then
+        read -p "Are you sure? [yN] "
+        if [[ "${REPLY}" =~ [Yy] ]]; then
+            sudo rm -rf ${BASE_DIR}
+        else
+            echo "Exiting!"
+            exit 1
+        fi
+    else
+        echo "Exiting!"
+        exit 1
+    fi
+else
+    echo "*** Creating directories..."
+    mkdir ${BASE_DIR} ${MNT_DIR} ${EXTRACT_CD_DIR}
+    echo "...DONE"
+fi
+
+sudo apt-get install squashfs-tools genisoimage coreutils
+echo "*** Load the squashfs module..."
+sudo modprobe squashfs
+echo "...DONE"
+
+echo "*** Mounting ISO ${BASE_ISO} at ${MNT_DIR}..."
+sudo mount -o loop ${BASE_ISO} ${MNT_DIR}\
+    && echo "...DONE"\
+    || echo "...FAILED"
+
+echo "*** Extracting ISO content to ${EXTRACT_CD_DIR}..."
+rsync --exclude=/casper/filesystem.squashfs -a ${MNT_DIR}/ ${EXTRACT_CD_DIR}\
+    && echo "...DONE"\
+    || echo "...FAILED"
+
+echo "*** Extract the squashfs filesystem from ${MNT_DIR}/casper/filesystem.squashfs to ${EDIT_DIR}..."
+pushd ${BASE_DIR}
+sudo rm -rf squashfs-root
+sudo unsquashfs ${MNT_DIR}/casper/filesystem.squashfs
+sudo mv squashfs-root edit
+popd
+echo "...DONE"
+
+echo "*** Umounting ISO at ${MNT_DIR}..."
+sudo umount -lf ${MNT_DIR}\
+    && echo "...DONE"\
+    || echo "...FAILED"

@@ -1,0 +1,39 @@
+#!/bin/sh
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+ibm AT gmail DOT com>
+# File:  gyr-tar-selfextract
+# Update: 20101224 01:09:03
+# (C) Copyright 2010 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Self extract tar file script
+#
+################################################################################
+
+echo ""
+echo "Self Extracting Tar File"
+echo ""
+
+TMPDIR=$(mktemp -d /tmp/selfextract.XXXXXX)
+
+ARCHIVE=$(awk '/^__ARCHIVE_BELOW__/ {print NR + 1; exit 0; }' $0)
+
+# take the tarfile and pipe it into tar
+tail -n+${ARCHIVE} $0 | tar xzv -C ${TMPDIR}
+
+CDIR=$(pwd)
+cd ${TMPDIR}
+if [ -f ./installer ]; then
+    ./installer
+    RESULT=$?
+fi
+
+cd ${CDIR}
+rm -rf ${TMPDIR}
+
+echo "Finished [${RESULT}]"
+exit 0
+
+# NOTE: Don't place any newline characters after the last line below.
+__ARCHIVE_BELOW__

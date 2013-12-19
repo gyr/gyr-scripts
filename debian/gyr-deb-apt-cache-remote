@@ -1,0 +1,21 @@
+#!/bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:  gyr-apt-cache-remote
+# Update: 20120704
+# (C) Copyright 2012 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: mount /var/cache/apt of zero.local (debian sid) via nfs
+# Usage: gyr-deb-apt-cache-remote
+#
+################################################################################
+
+[ "$1" = '--help' ] && { gyr-print-helper $0; exit 0; }
+
+REMOTE_HOST='zero.local'
+showmount -e ${REMOTE_HOST}
+if ! ping -c 2 ${REMOTE_HOST} > /dev/null 2>&1; then
+    mount.nfs4 -o rsize=8192,wsize=8192 zero.local:/var/cache/apt /var/cache/apt
+fi

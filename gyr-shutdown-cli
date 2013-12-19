@@ -1,0 +1,57 @@
+#!/bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:  gyr-shutdown-cli
+# Update: 20120225
+# (C) Copyright 2012 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Power management as a regular user (requires UPower)
+# Usage: gyr-shutdown-cli <shutdown|restart|suspend|hibernate>
+#
+################################################################################
+
+# http://linuxtidbits.wordpress.com/2012/02/24/power-management-from-the-command-line/
+# http://wiki.debian.org/UserShutdown
+
+[ "$1" = '--help' ] && { gyr-print-helper $0; exit 0; }
+
+# Always exit on errors
+set -e
+# Undefined variables, we don't like you
+set -u
+# ERR traps are inherited by shell functions, command substitutions and
+# commands executed in a subshell environment.
+set -E
+
+[ $# -ne 1 ] && { gyr-print -e ${0##*/} ""; exit 1; }
+
+case $1 in
+    shutdown)
+        echo " Shutting Down..."
+        dbus-send --system --print-reply --dest="org.freedesktop.ConsoleKit" \
+            /org/freedesktop/ConsoleKit/Manager \
+            org.freedesktop.ConsoleKit.Manager.Stop > /dev/null
+        ;;
+    restart)
+        echo " Restarting System..."
+        dbus-send --system --print-reply --dest="org.freedesktop.ConsoleKit" \
+            /org/freedesktop/ConsoleKit/Manager \
+            org.freedesktop.ConsoleKit.Manager.Restart > /dev/null
+        ;;
+    suspend)
+        echo " Suspending to RAM..."
+        dbus-send --system --print-reply --dest="org.freedesktop.UPower" \
+            /org/freedesktop/UPower org.freedesktop.UPower.Suspend > /dev/null
+        ;;
+    hibernate)
+        echo " Suspending to Disk..."
+        dbus-send --system --print-reply --dest="org.freedesktop.UPower" \
+            /org/freedesktop/UPower org.freedesktop.UPower.Hibernate > /dev/null
+        ;;
+    *)
+        gyr-print -e ${0##*/} "Invalid option!"
+        exit
+        ;;
+esac

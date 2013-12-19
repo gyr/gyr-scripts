@@ -1,0 +1,32 @@
+#!/bin/zsh
+##################################
+#
+# Author: Gustavo Yokoyama Ribeiro
+# File:   extractSdk
+# Update: 20080414 11:50:55
+# (C) Copyright 2010 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Extrat sdk_patch.
+# Usage: extractSdk <sdk_file>
+#
+##################################
+
+[[ -z ${CLEARCASE_ROOT} ]] && { gyr-print -e "$0:t" "view not set."; exit 1; }
+
+[[ $# -ne 1 ]] && { gyr-print -e "$0:t"; exit 1; }
+[[ $1 == "--help" ]] && { gyr-print-helper $0; exit 0; }
+
+[[ -f $1 ]] || { gyr-print -e "$0:t" "invalid file."; exit 1; }
+
+VIEW=${CLEARCASE_ROOT:t}
+
+echo -n "View: "
+gyr-echo ${VIEW}
+if read -q "?Populate current view? [ny] "; then
+    gyr-echo "Populating view ${VIEW}..."
+    gyr-echo "tar zxvf $1"
+    cd /
+    tar zxvf $1
+    sendMsgWin "--------------------\nView ${VIEW} populated.\n--------------------" && gyr-echo "Populating view ${VIEW}... done" || gyr-echo "Populating view ${VIEW}... failed"
+fi

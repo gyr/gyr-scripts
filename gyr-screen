@@ -1,0 +1,75 @@
+#!/bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro
+# File:   gyr-screen
+# Update: 20110407 02:23:39
+# (C) Copyright 2010 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Screen wrapper.
+# Usage: gyr-screen [-zb] [session_name]
+#   -b: use bash (default)
+#   -z: use zsh
+#
+################################################################################
+
+[ "$1" = '--help' ] && { gyr-print-helper $0; exit 0; }
+
+# Always exit on errors
+set -e
+# Undefined variables, we don't like you
+set -u
+# ERR traps are inherited by shell functions, command substitutions and
+# commands executed in a subshell environment.
+set -E
+
+[[ "$TERM" =~ screen ]] && { gyr-print -e ${0##*/} "In screen already."; exit 1; }
+
+LOCAL_SHELL=$SHELL
+#LOCAL_TITLE='$ |bash'
+LOCAL_TITLE='$ |'${LOCAL_SHELL##*/}
+
+while getopts ':zb' OPT_NAME 2> /dev/null; do
+    case ${OPT_NAME} in
+        'b')
+            LOCAL_SHELL=/bin/bash
+            LOCAL_TITLE='$ |bash'
+        ;;
+        'z')
+            LOCAL_SHELL=/usr/bin/zsh
+            LOCAL_TITLE='$ |zsh'
+        ;;
+        '?')
+            gyr-print -e ${0##*/} "Invalid option: -${OPTARG}."
+            exit 1
+        ;;
+        ':')
+            gyr-print -e ${0##*/} "Required argument not found for option -${OPTARG}."
+            exit 1
+        ;;
+        *)
+            gyr-print -e ${0##*/} "Unknown error while processing options."
+            exit 1
+        ;;
+    esac
+done
+
+(( OPTIND > 1 )) && shift $(( OPTIND - 1 ))
+
+#[ $# -eq 0 ] && screen -t "$ |$(hostname):" || screen -T xterm -t "$(echo $1)" ssh $1
+
+# Fix: $TERM too long - sorry.
+[ 'rxvt-unicode-256color' = "$TERM" ] && TERM=xterm-256color
+
+case $# in
+    0)
+        screen -s ${LOCAL_SHELL} -t "${LOCAL_TITLE}" -a -A -U
+        ;;
+    1)
+        screen -s ${LOCAL_SHELL} -t "${LOCAL_TITLE}" -a -A -U -D -R $1
+        ;;
+    #*)
+    #    [ "$1" = 'ssh' ] && screen -s ${LOCAL_SHELL}  -t "$(echo $2)" $* || screen -s ${LOCAL_SHELL} -t "$(echo $1)" $*
+    #    ;;
+esac

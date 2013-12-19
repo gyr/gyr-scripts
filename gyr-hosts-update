@@ -1,0 +1,43 @@
+#!/bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:  gyr-hosts-update
+# Update: 20130509
+# (C) Copyright 2013 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: updade hosts and hosts.deny files
+# Usage: gyr-hosts-update
+#
+################################################################################
+
+_hosts=/etc/hosts
+_hosts_orig=/etc/hosts.orig
+_hosts_deny=/hosts.deny
+_hosts_deny_orig=/hosts.deny.orig
+_url1="http://someonewhocares.org/hosts/hosts"
+_url22="http://winhelp2002.mvps.org/hosts.zip"
+_hosts1="/tmp/hosts"
+_hosts2="/tmp/HOSTS"
+_hosts2zip="/tmp/hosts.zip"
+
+pushd /tmp
+wget -c ${_url1}
+wget -c ${_url2}
+popd
+
+unzip ${_hosts2.zip}
+fromdos ${_hosts2}
+
+sudo mv ${_hosts}{,.$(date +%Y%m%d_%H%M%S)}
+sudo mv ${_hosts_deny}{,.$(date +%Y%m%d_%H%M%S)}
+sudo cp ${_hosts_orig} ${_hosts}
+sudo cp ${_hosts_deny_orig} ${_hosts_deny}
+
+cat ${_hosts1} | sudo tee -a ${_hosts}
+cat ${_hosts2} | sudo tee -a ${_hosts}
+
+cat ${_hosts1} | sudo tee -a ${_hosts_deny}
+cat ${_hosts2} | sudo tee -a ${_hosts_deny}
+sudo sed -i 's/^127\.0\.0\.1/ALL:/g;/localhost/d' ${_hosts_deny}

@@ -1,0 +1,27 @@
+#!/bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:  gyr-network-connections
+# Update: 20110303 08:55:29
+# (C) Copyright 2011 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: 
+# Usage: 
+#
+################################################################################
+
+[ "$1" = '--help' ] && { gyr-print-helper $0; exit 0; }
+
+# Always exit on errors
+set -e
+# Undefined variables, we don't like you
+set -u
+# ERR traps are inherited by shell functions, command substitutions and
+# commands executed in a subshell environment.
+set -E
+
+[ $# -ne 0 ] && { gyr-print -e ${0##*/} "Syntax error"; exit 1; }
+
+netstat -ept | grep ESTAB | awk '{print $9}' | sort | uniq -c | sort -nr | tr -s ' '

@@ -1,0 +1,75 @@
+#!/bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File: gyr-notify
+# Update: 20110222 17:00:00
+# (C) Copyright 2010 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Return the second spend by a command to execute
+# Usage: gyr-notify [-pr] [-t timeout] <command>
+#   -p: print output in  HH:MM:SS format
+#   -r: print command result
+#   -t: only notify if execution_time > timeout
+#
+################################################################################
+
+[ "$1" = '--help' ] && { gyr-print-helper $0; exit 0; }
+
+# Always exit on errors
+set -e
+# Undefined variables, we don't like you
+set -u
+# ERR traps are inherited by shell functions, command substitutions and
+# commands executed in a subshell environment.
+set -E
+
+TIMER=0
+
+while getopts ':prt:' OPT_NAME 2> /dev/null; do
+    case ${OPT_NAME} in
+        'p')
+            PRINT=1
+        ;;
+        'r')
+            PRINT_RESULT=1
+        ;;
+        't')
+            TIMER=${OPTARG}
+        ;;
+        '?')
+            gyr-print -e  "Invalid option: -${OPTARG}."
+            exit 1
+        ;;
+        ':')
+            gyr-print -e  "Required argument not found for option -${OPTARG}."
+            exit 1
+        ;;
+        *)
+            gyr-print -e  "Unknown error while processing options."
+            exit 1
+        ;;
+    esac
+done
+(( OPTIND > 1 )) && shift $(( OPTIND - 1 ))
+
+[ $# -eq 0 ] && { gyr-print -e ${0##*/}; exit 1; }
+
+START_TIME=$(date +%s)
+$@
+COMMAND_RESULT=$?
+END_TIME=$(date +%s)
+RESULT_TIME=$(( END_TIME - START_TIME ))
+if [[ ${PRINT} -eq 1 ]]; then
+    FORMAT_RESULT_TIME=$((10800 + RESULT_TIME))
+    PRINT_TIME=$(date -d @${FORMAT_RESULT_TIME} +%H:%M:%S)
+    echo ${PRINT_TIME}
+fi
+if [ ${TIMER} -gt 0 -a ${RESULT_TIME} -lt ${TIMER} ]; then
+    exit ${COMMAND_RESULT}
+fi
+notify-send -i gnome-terminal "[${COMMAND_RESULT}] $*"
+if [[ ${PRINT_RESULT} -eq 1 ]]; then
+    exit ${COMMAND_RESULT}
+fi

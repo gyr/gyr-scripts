@@ -1,0 +1,87 @@
+#!/bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:  gyr-deb-pbuilder-base
+# Update: 20110723
+# Based on script from Jamin W. Collins  BTS: #255165
+# (C) Copyright 2011 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: wrapper for pbuilder and cowbuilder
+# Usage: ln -s gyr-deb-pbuilder-base gyr-<builder>-<release>-<arch>
+#   ex: ln -s gyr-deb-pbuilder-base gyr-pbuilder-maverick-i386
+#       ln -s gyr-deb-pbuilder-base gyr-cowbuilder-maverick-i386
+#
+################################################################################
+
+OPERATION=$1
+BUILDER=`basename $0 | cut -f2 -d '-'`
+DISTRIBUTION=`basename $0 | cut -f3 -d '-'`
+ARCH=`basename $0 | cut -f4 -d '-'`
+PROCEED=false
+BASE_DIR="/var/cache/pbuilder"
+#CONFIGFILE=$HOME/.pbuilderrc-$DISTRIBUTION-$ARCH
+CONFIGFILE=$HOME/.pbuilderrc
+case $OPERATION in
+   create|update|build|clean|login|execute )
+      PROCEED=true
+   ;;
+esac
+if ( $PROCEED == true ) then
+    shift
+    #if ( [ $OPERATION = "create" ] || [ -d $BASE_DIR/$DISTRIBUTION-$ARCH.cow ] ) then
+    echo "PBUILDER SCRIPT DIST:$DISTRIBUTION ARCH:$ARCH"
+    case $BUILDER in
+        'pbuilder')
+            linux32 sudo DIST=$DISTRIBUTION ARC=$ARCH pbuilder $OPERATION \
+                --basetgz $BASE_DIR/$DISTRIBUTION-$ARCH/base.tgz \
+                --debootstrapopts --arch --debootstrapopts $ARCH \
+                --distribution $DISTRIBUTION \
+                --buildresult $BASE_DIR/result \
+                --aptcache $BASE_DIR/aptcache \
+                $@
+            #linux32 sudo pbuilder $OPERATION \
+            #    --basetgz $BASE_DIR/$DISTRIBUTION-$ARCH/base.tgz \
+            #    --debootstrapopts --arch --debootstrapopts $ARCH \
+            #    --configfile $CONFIGFILE \
+            #    --distribution $DISTRIBUTION \
+            #    --buildresult $BASE_DIR/result \
+            #    --aptcache $BASE_DIR/aptcache \
+            #    $@
+            ;;
+        'cowbuilder')
+            sudo DIST=$DISTRIBUTION ARC=$ARCH cowbuilder --$OPERATION \
+                --basepath $BASE_DIR/$DISTRIBUTION-$ARCH.cow/ \
+                --debootstrapopts --arch --debootstrapopts $ARCH \
+                --distribution $DISTRIBUTION \
+                --buildplace $BASE_DIR/build \
+                --buildresult $BASE_DIR/result \
+                --aptcache $BASE_DIR/aptcache \
+                $@
+            #sudo cowbuilder --$OPERATION \
+            #    --basepath $BASE_DIR/$DISTRIBUTION-$ARCH.cow/ \
+            #    --debootstrapopts --arch --debootstrapopts $ARCH \
+            #    --configfile $CONFIGFILE \
+            #    --distribution $DISTRIBUTION \
+            #    --buildplace $BASE_DIR/build \
+            #    --buildresult $BASE_DIR/result \
+            #    --aptcache $BASE_DIR/aptcache \
+            #    $@
+            ;;
+        *)
+            echo "Invalid builder command: $BUILDER"
+            exit 1
+            ;;
+    esac
+else
+   echo "Invalid command..."
+   echo "Valid commands are:"
+   echo "   create"
+   echo "   update"
+   echo "   build"
+   echo "   clean"
+   echo "   login"
+   echo "   execute"
+   exit 1
+fi

@@ -1,0 +1,31 @@
+#!/bin/zsh
+##################################
+#
+# Author: Gustavo Yokoyama Ribeiro
+# File:   remoteCmd
+# Update: 20100815 14:41:16
+# (C) Copyright 2010 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Send a command to a remote server.
+# Usage: remoteCmd <host_machine> "<command_1>" "<command_2>" ...
+#
+##################################
+
+[[ $# -eq 1 && $1 == "--help" ]] && { gyr-print-helper $0; exit 0; }
+
+[[ $# -le 1 ]] && { gyr-print -e ${0##*/}; exit 1; }
+
+echo -n "Host: "
+gyr-echo $1
+for i in ${argv[2,ARGC]}; do
+    echo -n "Command: "
+    gyr-echo ${i}
+done
+
+if read -q "?Execute remote commands? [ny] "; then
+    gyr-echo "Executing remote commands on host $1..."
+    ssh $1 <<< "$(echo ${^argv[2,$ARGC]}\;)" && gyr-echo "Executing remote commands on host $1... done" || gyr-echo "Executing remote commands on host $1... failed"
+else
+    exit 255
+fi

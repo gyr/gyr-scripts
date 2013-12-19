@@ -1,0 +1,51 @@
+#!/bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:  gyr-apt-history
+# Update: 20111108
+# (C) Copyright 2011 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: apt history list
+# Usage: gyr-apt-history
+#   -i: list installed packages
+#   -u: list upgraded packages
+#   -r: list removed packages
+#
+################################################################################
+
+[ "$1" = '--help' ] && { gyr-print-helper $0; exit 0; }
+
+while getopts ':iur' OPT_NAME 2> /dev/null; do
+    case ${OPT_NAME} in
+        'i')
+            APT_HIST_CMD='install '
+            ;;
+        'u')
+            APT_HIST_CMD='upgrade '
+            ;;
+        'r')
+            APT_HIST_CMD='remove '
+            ;;
+        '?')
+            gyr-print -e  "Invalid option: -${OPTARG}."
+            exit 1
+            ;;
+        ':')
+            gyr-print -e  "Required argument not found for option -${OPTARG}."
+            exit 1
+            ;;
+        *)
+            gyr-print -e  "Unknown error while processing options."
+            exit 1
+            ;;
+    esac
+done
+(( OPTIND > 1 )) && shift $(( OPTIND - 1 ))
+
+if [ $# -ne 0 ]; then
+    cat /var/log/dpkg.log | grep "${APT_HIST_CMD}" | grep $* 
+else
+    cat /var/log/dpkg.log | grep "${APT_HIST_CMD}"
+fi

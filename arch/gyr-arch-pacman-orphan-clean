@@ -1,0 +1,23 @@
+#!/bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:  gyr-arch-pacman-orphan-clean
+# Update: 20120331
+# (C) Copyright 2012 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: For recursively removing orphaned packages
+# Usage: gyr-arch-pacman-orphan-clean
+#
+################################################################################
+
+[ "$1" = '--help' ] && { gyr-print-helper $0; exit 0; }
+
+# https://wiki.archlinux.org/index.php/Pacman_Tips#Removing_orphaned_packages
+
+if [[ ! -n $(pacman -Qdt) ]]; then
+    echo no orphans to remove
+else
+    sudo pacman -Rs $(pacman -Qdtq)
+fi

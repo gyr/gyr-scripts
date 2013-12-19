@@ -1,0 +1,45 @@
+#!/bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:  gyr-git-cleanup
+# Update: 20110301 09:16:36
+# (C) Copyright 2011 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Remove .git and proj.git, create a new local and a bare repo
+# Usage: gyr-git-cleanup <full_path_of_/.git> <full_path_of_pro.git>
+#
+################################################################################
+
+[ "$1" = '--help' ] && { gyr-print-helper $0; exit 0; }
+
+# Always exit on errors
+set -e
+# Undefined variables, we don't like you
+set -u
+# ERR traps are inherited by shell functions, command substitutions and
+# commands executed in a subshell environment.
+set -E
+
+[ $# -ne 2 ] && { gyr-print -e ${0##*/} "Syntax error"; exit 1; }
+
+[ ! -d "$1" ] && { gyr-print -e ${0##*/} "Invalid $1"; exit 1; }
+[ ! -d "$2" ] && { gyr-print -e ${0##*/} "Invalid $2"; exit 1; }
+
+read -p "local git dir($1) and remote git dir($2) will be deleted, proceed? [y/N] "
+if [[ "${REPLY}" =~ [Yy] ]]; then
+    LOCAL_REPO=$(dirname $1)
+    REMOTE_REPO=$(dirname $2)
+    rm -rf $1 $2
+    echo "...Done"
+    echo "Creating local git repo in ${LOCAL_REPO}..."
+    pushd ${LOCAL_REPO}
+    git init
+    popd
+    echo "...Done"
+    echo "Creating remote bare git repo ${REMOTE_REPO}..."
+    git clone --bare ${LOCAL_REPO} $2
+    echo "...Done"
+fi
+

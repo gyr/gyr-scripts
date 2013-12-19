@@ -1,0 +1,77 @@
+#!/bin/zsh
+##################################
+#
+# Author: Gustavo Yokoyama Ribeiro
+# File:   gyr-grep
+# Update: 20100419 16:13:26
+# (C) Copyright 2010 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Recursive grep.
+# Usage: gyr-grep [-ic] <string_pattern> [file_pattern]
+#   -i: ignore sensitive case.
+#   -c: highlight searched string.
+#   -f: files with match.
+#   -l: show line number.
+#   -n: show matches per file.
+#   -w: restrict search to whole words only.
+#
+##################################
+
+[[ $# -eq 1 && $1 == "--help" ]] && { gyr-print-helper $0; exit 0; }
+
+typeset -a PARAM
+while getopts ':icflnw' OPT_NAME 2> /dev/null; do
+    case ${OPT_NAME} in
+    'i')
+        PARAM[((${#PARAM}+1))]="-i"
+        ;;
+    'c')
+        PARAM[((${#PARAM}+1))]="--color"
+        ;;
+    'f')
+        PARAM[((${#PARAM}+1))]="-l"
+        ;;
+    'l')
+        PARAM[((${#PARAM}+1))]="-n"
+        ;;
+    'n')
+        PARAM[((${#PARAM}+1))]="-c"
+        ;;
+    'w')
+        PARAM[((${#PARAM}+1))]="-w"
+        ;;
+    '?')
+        gyr-print -e ${0##*/} "Invalid option: -${OPTARG}."
+        exit 1
+        ;;
+    ':')
+        gyr-print -e ${0##*/} "Required argument not found for option -${OPTARG}."
+        exit 1
+        ;;
+    *)
+        gyr-print -e ${0##*/} "Unknown error while processing options."
+        exit 1
+        ;;
+    esac
+done
+
+(( OPTIND > 1 )) && shift $(( OPTIND - 1 ))
+
+case $# in
+    1)
+        STR_PATTERN=$1
+        FILE_PATTERN="*"
+        ;;
+    2)
+        STR_PATTERN=$1
+        FILE_PATTERN=$2
+        ;;
+    *)
+        gyr-print -e ${0##*/}
+        exit 1
+        ;;
+esac
+
+#[[ -n ${STR_PATTERN} ]] && find . -type f ${FILE_PATTERN} | grep -ve "'" | xargs grep -s ${PARAMS} ${STR_PATTERN} 2> /dev/null
+[[ -n ${STR_PATTERN} ]] && find . -type f -iname ${FILE_PATTERN} -not -name "*\'*" -print0 2> /dev/null | xargs -0r grep -sI --color ${PARAM} ${STR_PATTERN} 2> /dev/null

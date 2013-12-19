@@ -1,0 +1,32 @@
+#!/bin/bash
+########################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:   gyr-firefox-clean-db
+# Update: 20100815 19:07:58
+# (C) Copyright 2010 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Defrag firefox .sqlite files.
+# Usage: gyr-firefox-clean-db
+#
+########################################################
+
+[ "$1" = '--help' ] && { gyr-print-helper $0; exit 0; }
+
+# Always exit on errors
+set -e
+# Undefined variables, we don't like you
+set -u
+# ERR traps are inherited by shell functions, command substitutions and
+# commands executed in a subshell environment.
+set -E
+
+[ $# -ne 0 ] && { gyr-print -e ${0##*/}; exit 1; }
+
+if ! ps -ef | grep firefox > /dev/null 2>&1; then
+    gyr-print -e ${0##*/} "Firefox is running."
+    exit 1
+fi
+
+find ${HOME}/.mozilla/firefox -type f -name "*.sqlite" -exec sqlite3 {} vacuum \;

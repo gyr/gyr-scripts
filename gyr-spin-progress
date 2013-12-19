@@ -1,0 +1,34 @@
+#!/bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:  gyr-spin-progress
+# Update: 20101005 18:51:17
+# (C) Copyright 2010 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Spin progress meter for a given command
+# Usage: gyr-spin-progress <command>
+#
+################################################################################
+
+[ "$1" = '--help' ] && { gyr-print-helper $0; exit 0; }
+
+# http://www.slackbr.org/forum/viewtopic.php?f=45&p=77979&sid=0a8418d01c7091c8ff11b265f1926e02
+
+SpinProgress()
+{
+    tput civis
+    while [ -d /proc/$! ]; do
+        for i in / - \\ \|; do
+            echo -ne "$i \r"
+            sleep .1
+        done
+    done
+    echo -ne "\n"
+    tput cnorm
+}
+
+#sleep 10 > /dev/null 2>&1 &
+$* > /dev/null 2>&1 &
+SpinProgress

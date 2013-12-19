@@ -1,0 +1,73 @@
+#!/bin/bash
+########################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:   gyr-vbox-sharefolder
+# Update: 20110222 16:58:11
+# (C) Copyright 2010 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Configure shared folder for virtual machines.
+# Usage: gyr-vbox-sharefolder [-i]
+#        -i: command information
+#        -u: share folder for ubuntu
+#        -d: share folder for debian
+#
+########################################################
+
+printInfo()
+{
+    echo "On the Linux client, run:"
+    gyr-echo "mount -t vboxfs share_<HOST_NAME> mountpoint"
+    echo "For the above command if you get error as:"
+    echo "mount: unknown filesystem type 'vboxfs'"
+    echo "Then just change the vboxfs to vboxsf means the command will be"
+    gyr-echo "mount -t vboxsf share_<HOST_NAME> mountpoint"
+    echo
+    echo "If the client is Windows, run:"
+    gyr-echo "net use x: \\\\vboxsvr\share_<HOST_NAME>"
+}
+
+[[ $# -eq 1 && $1 == "--help" ]] && { gyr-print-helper $0; exit 0; }
+
+while getopts ':iud' OPT_NAME 2> /dev/null; do
+    case ${OPT_NAME} in
+    'i')
+        printInfo
+        exit 0
+    ;;
+    'u')
+        HOST_NAME='ubuntu'
+    ;;
+    'd')
+        HOST_NAME='debian'
+    ;;
+    '?')
+        gyr-print -e ${0##*/} "Invalid option: -${OPTARG}."
+        exit 1
+    ;;
+    ':')
+        gyr-print -e ${0##*/} "Required argument not found for option -${OPTARG}."
+        exit 1
+    ;;
+    *)
+        gyr-print -e ${0##*/} "Unknown error while processing options."
+        exit 1
+    ;;
+    esac
+done
+
+(( OPTIND > 1 )) && shift $(( OPTIND - 1 ))
+
+[ $# -ne 0 ] && { gyr-print -e ${0##*/}; exit 1; }
+
+SHARE_NAME="share_${HOST_NAME}"
+SHARE_FOLDER='/work/tmp'
+[ ! -d ${SHARE_FOLDER} ] && mkdir ${SHARE_FOLDER}
+
+VBoxManage sharedfolder add "${HOST_NAME}" -name "${SHARE_NAME}" -hostpath ${SHARE_FOLDER} || exit 1
+
+echo
+echo "Configured shared folder for ${HOST_NAME} virtual machine."
+echo
+printInfo

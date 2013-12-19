@@ -1,0 +1,110 @@
+#!/bin/bash
+##################################
+#
+# Author: Gustavo Yokoyama Ribeiro
+# File:   gyr-install
+# Update: 20110217 23:02:29
+# (C) Copyright 2010 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Install gyr config/files/directories to a new account
+# Usage: gyr-install
+#
+##################################
+
+[ "$1" = '--help' ] && { gyr-print-helper $0; exit 0; }
+
+# Always exit on errors
+set -e
+# Undefined variables, we don't like you
+set -u
+# ERR traps are inherited by shell functions, command substitutions and
+# commands executed in a subshell environment.
+set -E
+
+[ $# -ne 0 ] && { gyr-print -e ${0##*/}; exit 1; }
+
+BKP_DIR=${HOME}/bkp/$(date +%Y%m%d)
+GYR_DOTFILES_DIR=${HOME}/.gyr.d/dotfiles
+
+[ -d ${BKP_DIR} ] || mkdir -p ${BKP_DIR}
+
+if [ ! -d "${GYR_DOTFILES_DIR}" ];then
+    read -e -p "Enter source dir: "
+    [ ! -z "${REPLY}" -a -d ${REPLY} ] && ln -s ${REPLY} ${HOME} || { gyr-print -e ${0##*/} "Invalid ource directory"; exit 1; }
+fi
+
+bash_files="bash_profile bashrc profile"
+zsh_files="zlogin zprofile zshenv zshrc"
+env_files="Xdefaults inputrc xinitrc xsessionrc xbindkeysrc Xmodmap_t61"
+misc_dirs="fonts vim mpd ncmpcpp"
+misc_files="gitconfig hgrc mpdconf screenrc ssh/config unburden-home-dir.list obnam.conf fehbg ackrc"
+
+# Always install file and backup the original if it exists.
+install_files() {
+    for i in $1; do
+        # file is a symbolic link
+        if [ ! -h ${HOME}/.$i ];then
+            # file exists
+            if [ -f ${HOME}/.$i ];then
+                if ! cmp --quiet ${GYR_DOTFILES_DIR}/$i ${HOME}/.$i; then
+                    mv ${HOME}/.$i ${BKP_DIR}/$i$(date +%Y%m%d_%H%M%S)
+                fi
+            fi
+            ln -sf ${GYR_DOTFILES_DIR}/$i ${HOME}/.$i
+        fi
+    done
+}
+
+install_dirs() {
+    for i in $1; do
+        if [ ! -h ${HOME}/.$i ];then
+            [ -d ${HOME}/.$i ] && mv ${HOME}/.$i ${BKP_DIR}/$i$(date +%Y%m%d_%H%M%S)
+            ln -sfn ${GYR_DOTFILES_DIR}/$i ${HOME}/.$i
+        fi
+    done
+}
+
+install_files "${bash_files}"
+
+if [ "$(lsb_release -si 2> /dev/null)" = 'Ubuntu' ]; then
+    if [ ! -h ${HOME}/.Xresources ];then
+        if [ -f ${HOME}/.Xresources ];then
+            if ! cmp --quiet ${GYR_DOTFILES_DIR}/Xdefaults ${HOME}/.Xresources; then
+                mv ${HOME}/.Xresources ${BKP_DIR}/Xresources$(date +%Y%m%d_%H%M%S)
+            fi
+        fi
+        ln -sf ${GYR_DOTFILES_DIR}/Xdefaults ${HOME}/.Xresources
+    fi
+    if [ ! -h ${HOME}/.xsession ];then
+        if [ -f ${HOME}/.xsession ];then
+            if ! cmp --quiet ${GYR_DOTFILES_DIR}/xinitrc ${HOME}/.xsession; then
+                mv ${HOME}/.xsession ${BKP_DIR}/xsession$(date +%Y%m%d_%H%M%S)
+            fi
+        fi
+        ln -sf ${GYR_DOTFILES_DIR}/xinitrc ${HOME}/.xsession
+    fi
+    if [ ! -h ${HOME}/.xsessionrc ];then
+        if [ -f ${HOME}/.xsessionrc ];then
+            if ! cmp --quiet ${GYR_DOTFILES_DIR}/xsessionrc ${HOME}/.xsessionrc; then
+                mv ${HOME}/.xsessionrc ${BKP_DIR}/xsessionrc$(date +%Y%m%d_%H%M%S)
+            fi
+        fi
+        ln -sf ${GYR_DOTFILES_DIR}/xsessionrc ${HOME}/.xsessionrc
+    fi
+else
+    install_files "${env_files}"
+fi
+
+install_dirs "${misc_dirs}"
+install_files "${misc_files}"
+
+hash zsh 2>/dev/null && install_files "${zsh_files}"
+
+if [ -h ${HOME}/.vim -a ! -d ${HOME}/.vim-tmp ]; then
+    ln -s ${HOME}/.vim/vimrc ${HOME}/.vimrc
+    mkdir -p ${HOME}/.vim-tmp/bkp
+    mkdir -p ${HOME}/.vim-tmp/swp
+    mkdir -p ${HOME}/.vim-tmp/tags
+    #ctags -R -f ~/.vim-tmp/tags/python.ctags /usr/lib/python2.5/
+fi

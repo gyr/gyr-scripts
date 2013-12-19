@@ -1,0 +1,43 @@
+#!/bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:  gyr-tmux
+# Update: 20100920 13:32:45
+# (C) Copyright 2010 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: tmux wrapper
+# Usage: gyr-tmux <command>
+#
+################################################################################
+
+[ "$1" = '--help' ] && { gyr-print-helper $0; exit 0; }
+
+# Always exit on errors
+set -e
+# Undefined variables, we don't like you
+set -u
+# ERR traps are inherited by shell functions, command substitutions and
+# commands executed in a subshell environment.
+set -E
+
+_base_session="${USER}@${HOSTNAME}"
+
+tmux -q has-session -t ${_base_session} || tmux new-session -d -s ${_base_session}
+
+if [ $# -eq 0 ]; then
+    _client_session=${_base_session}.$(date +%S)
+    #tmux -2 new-session -d -t ${_base_session} -s ${_client_session} \; set-option -q destroy-unattached \; attach-session -t ${_client_session}
+    # since tmux 1.8 -A option is available:
+    tmux -2 new-session -A -t ${_base_session} -s ${_client_session} \; set-option -q destroy-unattached
+    #if tmux -q has-session -t $USER@$HOSTNAME; then
+    #    exec tmux -2 attach-session -d -t $USER@$HOSTNAME
+    #else
+    #    exec tmux -2 new-session -s $USER@$HOSTNAME
+    #fi
+elif [ $# -ge 1 ]; then
+    exec tmux new-window -c ~ -t $USER@$HOSTNAME "exec $*"
+else
+    gyr-print -e ${0##*/} "Unknown error"
+fi

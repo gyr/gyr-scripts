@@ -1,0 +1,93 @@
+#!/bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:  gyr-bkp
+# Update: 20110405 17:41:55
+# (C) Copyright 2011 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: backup all .gyr.d config files to Dropbox folder.
+# Usage: gyr-bkp [-md]
+#   -m: monthly backup (duplicity)
+#   -d: dayly backup (rsync)
+#
+################################################################################
+
+[ "$1" = '--help' ] && { gyr-print-helper $0; exit 0; }
+
+while getopts ':md' OPT_NAME 2> /dev/null; do
+    GYR_DOT_DIR=${HOME}/.gyr.d
+    if [ -L "${GYR_DOT_DIR}" -o ! -d "${GYR_DOT_DIR}" ]; then
+        if [ -d /work/gyr/.gyr.d -a ! -L /work/gyr/.gyr.d ]; then
+            GYR_DOT_DIR=/work/gyr/.gyr.d
+        else
+            gyr-print -e ${0##*/} "Invalid source dir (.gyr.d)"
+            exit 1
+        fi
+    fi
+    DIR_DROPBOX=${HOME}/Dropbox
+    if [ ! -d "${DIR_DROPBOX}" ]; then
+        DIR_DROPBOX=/work/gyr/Dropbox
+        if [ ! -d "${DIR_DROPBOX}" ]; then
+            gyr-print -e ${0##*/} "Invalid Dropbox dir (${DIR_DROPBOX})"
+            exit 1
+        fi
+    fi
+
+    case ${OPT_NAME} in
+        'm')
+            DIR_DROPBOX_BKP=${DIR_DROPBOX}/bkp/gyrd
+            if [ ! -d "${DIR_DROPBOX_BKP}" ]; then
+                if [ -d ${DIR_DROPBOX}/bkp/gyrd ]; then
+                    DIR_DROPBOX_BKP=${DIR_DROPBOX}/bkp/gyrd
+                else
+                    gyr-print -e ${0##*/} "Invalid Dropbox dir (${DIR_DROPBOX_BKP})"
+                    exit 1
+                fi
+            fi
+
+            duplicity --exclude ${GYR_DOT_DIR}/.git ${GYR_DOT_DIR} file://${DIR_DROPBOX_BKP}
+            exit 0
+            ;;
+        'd')
+            DIR_DEC_BKP=${DIR_DROPBOX}/bkp/bkpc
+            if [ ! -d "${DIR_DEC_BKP}" ]; then
+                gyr-print -e ${0##*/} "Invalid Dropbox dir (${DIR_DEC_BKP})"
+                exit 1
+            fi
+
+            DIR_ENC_BKP=${DIR_DROPBOX}/.bbb
+            if [ -d "${DIR_ENC_BKP}" ]; then
+                if ! mount | cut -d ' ' -f1 | grep ${DIR_ENC_BKP} >/dev/null 2>&1; then
+                    sudo mount -t ecryptfs ${DIR_ENC_BKP} ${DIR_DEC_BKP} -o key=passphrase,ecryptfs_cipher=aes,ecryptfs_key_bytes=16,ecryptfs_passthrough=n,ecryptfs_enable_filename_crypto=y
+                fi
+            else
+                gyr-print -e ${0##*/} "Invalid Dropbox dir (${DIR_ENC_BKP})"
+                exit 1
+            fi
+
+            ls -la ${DIR_DEC_BKP}/.gyr.d/ || { gyr-print -e ${0##*/} "Failed to mount ${DIR_DEC_BKP}"; exit 1; }
+            read -p "Proceed backup? [y/N] "
+            if [[ "${REPLY}" =~ [Yy] ]]; then
+                rsync -Cravzpt --delete ${GYR_DOT_DIR}/ ${DIR_DEC_BKP}/.gyr.d/
+            fi
+            exit 0
+        ;;
+        '?')
+            gyr-print -e  "Invalid option: -${OPTARG}."
+            exit 1
+        ;;
+        ':')
+            gyr-print -e  "Required argument not found for option -${OPTARG}."
+            exit 1
+        ;;
+        *)
+            gyr-print -e  "Unknown error while processing options."
+            exit 1
+        ;;
+    esac
+done
+#(( OPTIND > 1 )) && shift $(( OPTIND - 1 ))
+gyr-print -e ${0##*/}
+exit 1

@@ -1,0 +1,53 @@
+#!/bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:  gyr-rsync-auto
+# Update: 20110928
+# (C) Copyright 2011 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Sync tool for ${HOME} directory
+# Usage: gyr-rsync-auto
+#
+################################################################################
+
+[ "$1" = '--help' ] && { gyr-print-helper $0; exit 0; }
+
+# Always exit on errors
+set -e
+# Undefined variables, we don't like you
+set -u
+# ERR traps are inherited by shell functions, command substitutions and
+# commands executed in a subshell environment.
+set -E
+
+[ $# -ne 0 ] && { gyr-print -e ${0##*/} "Syntax error!"; exit 1; }
+
+echo "WARNING: Remote host MUST have a /work/gyr directory!!!"
+read -p "Enter remote host (empty exits): "
+[ -z ${REPLY} ] && exit 0 || REMOTE_HOST=${REPLY}
+if ! ping -c 2 ${REMOTE_HOST} > /dev/null 2>&1; then
+    { gyr-print -e ${0##*/} "Invalid host ${REMOTE_HOST}"; exit 1; }
+fi
+
+eval $(/usr/bin/keychain --eval --agents ssh,gpg -Q --quiet ~/.ssh/id_rsa) || { gyr-print -e ${0##*/} "keychain: ERROR"; exit 1; }
+
+LOCAL_DIR=$HOME
+REMOTE_DIR='/work/gyr'
+LIST_DIR=".gnupg .gyr.d .ibm.d .xchat2 .sylpheed-2.0 .purple lotus Documents SametimeMeetings SametimeRooms"
+
+for i in ${LIST_DIR}; do
+    echo "Sync'ing ${LOCAL_DIR}/$i -> ${REMOTE_HOST}:${REMOTE_DIR}/"
+    rsync -CravzpthHx --update --delete ${LOCAL_DIR}/${i} ${REMOTE_HOST}:${REMOTE_DIR}/
+    # -C, --cvs-exclude
+    # -r, --recursive
+    # -a, --archive
+    # -v, --verbose
+    # -z, --compress
+    # -p, --perms
+    # -t, --times
+    # -h, --human-readable
+    # -H, --hard-links
+    # -x, --one-file-system
+done

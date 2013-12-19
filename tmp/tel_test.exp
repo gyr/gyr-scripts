@@ -1,0 +1,26 @@
+#!/usr/bin/expect -f
+    set timeout 20
+    set IPaddress [lindex $argv 0]
+    set Username "dev"
+    set Password "FipSdev"
+    set Directory "/tmp"
+
+    log_file -a $Directory/session_$IPaddress.log
+    send_log "### /START-TELNET-SESSION/ IP: $IPaddress @ [exec date] ###\r"
+
+    spawn telnet $IPaddress
+    expect "*ogin: "
+    send "$Username\r"
+    expect "*assword: "
+    send "$Password\r"
+    expect "$ "
+    send "date ; registry -l DriverName ; errl -l\r"
+    while { 0 == 0 } {
+        expect "$ "
+        send "date ; smgr mfgState ; tmgtclient --query ; gard -gg ; getscom pu.mc 0601080B 44 9 -od -all ; getscom pu.mc 0601080B 53 9 -od -all ; tmgtclient -P ; echo -e '0\n0\n0\n9\n5' | tpmdtool -! 5 ; tpmdtool -Z ; tpmdtool -L ; getclockspeed pu.c pu_coreclock mhz\r"
+        sleep 60
+    }
+    expect "$ "
+    send "exit\r"
+    send_log "\r### /END-TELNET-SESSION/ IP: $IPaddress @ [exec date] ###\r"
+exit

@@ -1,0 +1,139 @@
+#!/bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:  gyr-monitor-set-resolution
+# Update: 20110609
+# (C) Copyright 2011 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Set an extra monitor with 1920x1080 resolution
+# Usage: gyr-monitor-set-resolution
+#   -l: set TP monitor *ONLY* (resolution 1600x900)
+#   -e: set extra monitor *ONLY* (resolution 1920x1080)
+#   -a: set TP and extra monitor
+#   -p: set TP and presentation monitor (resolution 1024x768)
+#
+################################################################################
+
+[ "$1" = '--help' ] && { gyr-print-helper $0; exit 0; }
+
+# Always exit on errors
+set -e
+# Undefined variables, we don't like you
+set -u
+# ERR traps are inherited by shell functions, command substitutions and
+# commands executed in a subshell environment.
+set -E
+
+[ $# -ne 1 ] && { gyr-print -e ${0##*/} "Syntax error"; exit 1; }
+
+# https://wiki.ubuntu.com/X/Config/Resolution
+set_tp_monitor_resolution()
+{
+    # Set laptop monitor (LVDS1) resolution
+    xrandr --output LVDS1 --mode 1600x900 --rate 60
+
+    #xrandr --output LVDS1 --left-of VGA1
+    #xrandr --output LVDS1 --below VGA1
+}
+
+set_extra_monitor_resolution()
+{
+    # Create new monitor resolution for extra monitor (VGA1)
+    #% cvt 1920 1080 60
+    ## 1920x1080 59.96 Hz (CVT 2.07M9) hsync: 67.16 kHz; pclk: 173.00 MHz
+    #Modeline "1920x1080_60.00"  173.00  1920 2048 2248 2576  1080 1083 1088 1120 -hsync +vsync
+    #xrandr --newmode "1920x1080_60.00"  173.00  1920 2048 2248 2576  1080 1083 1088 1120 -hsync +vsync||:
+    #xrandr --newmode 1920x1080  220.64  1920 2056 2264 2608  1080 1081 1084 1128  -HSync +Vsync
+    #xrandr --newmode "1920x1080" 148.5 1920 2008 2052 2200 1080 1089 1095 1125 +hsync +vsync ||:
+    local _modeName="1920x1080_75.00"
+    if ! xrandr | grep ${_modeName} >/dev/null 2>&1; then
+        xrandr --newmode $(gtf 1920 1080 75 | sed -ne 's/  Modeline\ //;s/"//gp')
+        xrandr --addmode VGA1 ${_modeName}
+    fi
+
+    # Set extra monitor (VGA1) resolution
+    xrandr --output VGA1 --mode ${_modeName}
+    #xrandr --output VGA1 --mode 1360x768 --rate 60
+}
+
+set_presentation_monitor_resolution()
+{
+    # Create new monitor resolution for extra monitor (VGA1)
+    #% cvt 1920 1080 60
+    ## 1920x1080 59.96 Hz (CVT 2.07M9) hsync: 67.16 kHz; pclk: 173.00 MHz
+    #Modeline "1920x1080_60.00"  173.00  1920 2048 2248 2576  1080 1083 1088 1120 -hsync +vsync
+    #xrandr --newmode "1920x1080_60.00"  173.00  1920 2048 2248 2576  1080 1083 1088 1120 -hsync +vsync||:
+    #xrandr --newmode 1920x1080  220.64  1920 2056 2264 2608  1080 1081 1084 1128  -HSync +Vsync
+    #xrandr --newmode "1920x1080" 148.5 1920 2008 2052 2200 1080 1089 1095 1125 +hsync +vsync ||:
+    #xrandr --addmode VGA1 1024x768
+
+    # Set presentation monitor (VGA1) resolution
+    xrandr --output VGA1 --mode 1024x768
+    #xrandr --output VGA1 --mode 1360x768 --rate 60
+}
+
+set_only_tp_monitor()
+{
+    #This sets your laptop monitor as your primary monitor.
+    xrandr --output LVDS1 --primary
+
+    xrandr --output VGA1 --off --output LVDS1 --auto
+}
+
+set_only_extra_monitor()
+{
+    #This sets your extra monitor as your primary monitor.
+    xrandr --output VGA1 --primary
+
+    xrandr --output LVDS1 --off --output VGA1 --auto
+}
+
+
+function set_all() {
+    #This sets your laptop monitor as your primary monitor.
+    xrandr --output LVDS1 --primary
+
+    xrandr --output VGA1 --above LVDS1
+}
+
+while getopts ':leap' OPT_NAME 2> /dev/null; do
+    case ${OPT_NAME} in
+        'l')
+            set_tp_monitor_resolution
+            set_only_tp_monitor
+            ;;
+        'e')
+            set_extra_monitor_resolution
+            set_only_extra_monitor
+            ;;
+        'a')
+            set_extra_monitor_resolution
+            set_tp_monitor_resolution
+            set_all
+            ;;
+        'p')
+            set_presentation_monitor_resolution
+            set_tp_monitor_resolution
+            set_all
+            ;;
+        '?')
+            gyr-print -e  "Invalid option: -${OPTARG}."
+            exit 1
+            ;;
+        ':')
+            gyr-print -e  "Required argument not found for option -${OPTARG}."
+            exit 1
+            ;;
+        *)
+            gyr-print -e  "Unknown error while processing options."
+            exit 1
+            ;;
+    esac
+done
+
+#(( OPTIND > 1 )) && shift $(( OPTIND - 1 ))
+
+#Laptop left extra monitor right
+#xrandr --output LVDS1 --below VGA1

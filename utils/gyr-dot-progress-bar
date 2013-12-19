@@ -1,0 +1,32 @@
+#!/bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:  dotbar.sh
+# Update: 20101005 18:51:52
+# (C) Copyright 2010 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Dot progress bar for the given command.
+# Usage: gyr-dot-progress-bar <command>
+#
+################################################################################
+
+[ "$1" = '--help' ] && { gyr-print-helper $0; exit 0; }
+
+# http://www.commandlinefu.com/commands/view/3558/function-that-outputs-dots-every-second-until-command-completes
+
+DotProgress()
+{
+    tput civis
+    while [ -d /proc/$! ]; do
+        echo -n "."
+        sleep .5
+    done
+    echo
+    tput cnorm
+}
+
+#sleep 10 > /dev/null 2>&1 &
+$* > /dev/null 2>&1 &
+DotProgress

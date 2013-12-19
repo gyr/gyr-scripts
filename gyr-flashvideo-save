@@ -1,0 +1,42 @@
+#!/bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:  gyr-flashvideo-save
+# Update: 20110309 13:19:20
+# (C) Copyright 2011 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Save .flv files
+# Usage: gyr-flashvideo-save
+#
+################################################################################
+
+[ "$1" = '--help' ] && { gyr-print-helper $0; exit 0; }
+
+# Always exit on errors
+set -e
+# Undefined variables, we don't like you
+set -u
+# ERR traps are inherited by shell functions, command substitutions and
+# commands executed in a subshell environment.
+set -E
+
+[ $# -ne 0 ] && { gyr-print -e ${0##*/} "Syntax error"; exit 1; }
+
+# http://http://superuser.com/questions/235535/in-google-chrome-on-linux-where-is-the-flv-if-not-in-tmp
+
+NPVIEWER_PID=$(ps ux | grep npviewer | grep -v grep | tr -s ' ' | cut -d ' ' -f2)
+
+for i in ${NPVIEWER_PID}; do
+    echo $i
+    FLASH_DIR=/proc/$i/fd
+    if [ -d "${FLASH_DIR}" ]; then
+        pushd ${FLASH_DIR}
+        FLASH_FILE=$(ls -l | grep /tmp/Flash | tr -s ' ' | cut -d ' ' -f8)
+        #file -L ${FLASH_FILE}
+        mplayer ${FLASH_FILE} -dumpstream -dumpfile /tmp/flashfile$(date +%s%N).flv
+        popd
+    fi
+    ls -ls /tmp/flashfile*
+done

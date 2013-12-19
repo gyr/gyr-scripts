@@ -1,0 +1,43 @@
+#!/bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:  gyr-color-test
+# Update: 20120112
+# (C) Copyright 2012 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Test terminal colors
+# Usage: gyr-color-test
+#
+################################################################################
+
+[ "$1" = '--help' ] && { gyr-print-helper $0; exit 0; }
+
+# Always exit on errors
+set -e
+# Undefined variables, we don't like you
+set -u
+# ERR traps are inherited by shell functions, command substitutions and
+# commands executed in a subshell environment.
+set -E
+
+TPUT_COLORS=$(tput colors)
+
+echo "Terminal: ${TERM}"
+echo "tput colors: ${TPUT_COLORS}"
+echo
+tput setaf 0
+for i in $(seq 0 ${TPUT_COLORS}); do tput setab $i;  echo -n " $i "; done
+tput sgr0
+echo
+for attr in $(seq 0 1); do
+    for fg in $(seq 30 37); do
+        for bg in $(seq 40 47); do
+            echo -e -n "\033[$attr;${bg};${fg}m$attr;$fg;$bg\033[m "
+        done
+        echo
+    done
+done
+#colortable16.sh
+#256colors2.pl

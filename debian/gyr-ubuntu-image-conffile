@@ -1,0 +1,42 @@
+#!/bin/bash -e
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+ibm AT gmail DOT com>
+# File:  ubuntu-image-conffile
+# Description: Configuration files for ISO image
+# Usage: ubuntu-image-conffile
+#
+################################################################################
+
+BASE_RELEASE=natty
+BASE_RELEASE_NUM='11.04'
+#BASE_RELEASE=maverick
+#BASE_RELEASE_NUM='10.10'
+#BASE_RELEASE=lucid
+#BASE_RELEASE_NUM='10.04.2'
+
+if [ "$(hostname)" = 'cataclysm' ];then
+    ISO_DIR=${HOME}/OCDC/iso
+    BASE_ISO=${ISO_DIR}/ubuntu-11.04-desktop-i386.iso
+    #BASE_ISO=${ISO_DIR}/ubuntu-10.10-desktop-i386.iso
+    #BASE_ISO=${ISO_DIR}/ubuntu-10.04.2-desktop-i386.iso
+    BASE_DIR=${HOME}/OCDC/liveDVD-${BASE_RELEASE}
+    CUSTOM_ISO=${ISO_DIR}/OCDC-${BASE_RELEASE}-Test-Drive-$(date +%Y%m%d_%H%M%S).iso
+else
+    ISO_DIR=/work/iso
+    BASE_ISO=${ISO_DIR}/ubuntu-11.04-desktop-i386.iso
+    #BASE_ISO=${ISO_DIR}/ubuntu-10.10-desktop-i386.iso
+    #BASE_ISO=${ISO_DIR}/OCDC-lucid-Test-Drive-20110406_171512.iso
+    BASE_DIR=/work/live/liveDVD-${BASE_RELEASE}
+    CUSTOM_ISO=${ISO_DIR}/OCDC-${BASE_RELEASE}-Test-Drive-$(date +%Y%m%d_%H%M%S).iso
+fi
+IMAGE_NAME="OCDC ${BASE_RELEASE_NUM} Live-Test Drive"
+
+MNT_DIR=${BASE_DIR}/mnt
+EXTRACT_CD_DIR=${BASE_DIR}/extract-cd
+EDIT_DIR=${BASE_DIR}/edit
+
+
+ISO_DIR=${BASE_DIR}/extract-cd/isolinux
+OCDC_DIR=/work/debian/liveCD/files/ocdc
+INITRD_FILE=${BASE_DIR}/extract-cd/casper/initrd.gz

@@ -1,0 +1,32 @@
+#!/bin/sh
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:   gyr-ssh-init
+# Update: 20100815 14:29:48
+# (C) Copyright 2010 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: start up ssh-agent with keychain
+# Usage: gyr-ssh-init
+#
+################################################################################
+
+[ "$1" = '--help' ] && { gyr-print-helper $0; exit 0; }
+
+# Always exit on errors
+set -e
+# Undefined variables, we don't like you
+set -u
+# ERR traps are inherited by shell functions, command substitutions and
+# commands executed in a subshell environment.
+set -E
+
+[ $# -ne 0 ] && { gyr-print -e ${0##*/}; exit 1; }
+
+### START-Keychain ###
+# Let  re-use ssh-agent and/or gpg-agent between logins
+/usr/bin/keychain --eval --agents ssh,gpg -Q --quiet ~/.ssh/id_rsa
+[ -f ~/.keychain/${HOSTNAME}-sh ] && echo "Config ssh-agent:\n. ~/.keychain/${HOSTNAME}-sh"
+[ -f ~/.keychain/${HOSTNAME}-sh-gpg ] && echo"Config ssh-agent:\n. ~/.keychain/${HOSTNAME}-sh-gpg"
+### End-Keychain ###

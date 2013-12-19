@@ -1,0 +1,69 @@
+#!/bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:  gyr-shutdown-dialog
+# Update: 20110312 09:56:10
+# (C) Copyright 2011 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Shutdown/reboot/suspend/hibernate/PoweSave/lock dialog.
+# Usage: gyr-shutdown-dialog
+#
+################################################################################
+
+[ "$1" = '--help' ] && { gyr-print-helper $0; exit 0; }
+
+# Always exit on errors
+set -e
+# Undefined variables, we don't like you
+set -u
+# ERR traps are inherited by shell functions, command substitutions and
+# commands executed in a subshell environment.
+set -E
+
+[ $# -ne 0 ] && { gyr-print -e ${0##*/} "Syntax error"; exit 1; }
+
+if pm-is-supported --hibernate > /dev/null 2>&1; then
+    SHUTDOWN_OPTIONS="TRUE Shutdown FALSE Reboot FALSE LockScreen FALSE Suspend False Hibernate False PowerSave"
+else
+    SHUTDOWN_OPTIONS="TRUE Shutdown FALSE Reboot FALSE LockScreen"
+fi
+
+#ACTION=`zenity --width=90 --height=200 --list --radiolist --text="Select logout action" --title="Logout" --column "Choice" --column "Action" ${SHUTDOWN_OPTIONS}`
+ACTION=`zenity --width=90 --height=270 --list --radiolist --text="Select logout action" --title="Logout" --column "Choice" --column "Action" ${SHUTDOWN_OPTIONS}`
+
+if [ -n "${ACTION}" ];then
+    case $ACTION in
+        Shutdown)
+            #zenity --question --text "Are you sure you want to halt?" && gksudo halt
+            zenity --question --text "Are you sure you want to halt?" && gyr-shutdown-cli shutdown
+            ;;
+        Reboot)
+            #zenity --question --text "Are you sure you want to reboot?" && gksudo reboot
+            zenity --question --text "Are you sure you want to reboot?" && gyr-shutdown-cli restart
+            ;;
+        Suspend)
+            #gksudo pm-suspend
+            gyr-shutdown-cli suspend
+            #dbus-send --system --print-reply --dest=org.freedesktop.Hal \
+            #    /org/freedesktop/Hal/devices/computer \
+            #    org.freedesktop.Hal.Device.SystemPowerManagement.Suspend int32:0
+            ;;
+        Hibernate)
+            #gksudo pm-hibernate
+            gyr-shutdown-cli hibernate
+            #dbus-send --system --print-reply --dest=org.freedesktop.Hal \
+            #    /org/freedesktop/Hal/devices/computer \
+            #    org.freedesktop.Hal.Device.SystemPowerManagement.Hibernate
+            ;;
+        PowerSave)
+            gksudo pm-powersave
+            ;;
+        LockScreen)
+            #slock
+            #gnome-screensaver-command --lock
+            xscreensaver-command -lock
+            ;;
+    esac
+fi

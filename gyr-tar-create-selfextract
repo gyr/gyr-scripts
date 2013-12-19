@@ -1,0 +1,57 @@
+#!/bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+ibm AT gmail DOT com>
+# File:  gyr-tar-create-selfextract
+# Update: 20100815 14:32:41
+# (C) Copyright 2010 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Create a selfextract tar file
+# Usage: gyr-tar-create-selfextract <dir>
+#
+################################################################################
+
+[ "$1" = '--help' ] && { gyr-print-helper $0; exit 0; }
+
+# Always exit on errors
+set -e
+# Undefined variables, we don't like you
+set -u
+# ERR traps are inherited by shell functions, command substitutions and
+# commands executed in a subshell environment.
+set -E
+
+[ $# -ne 1 ] && { gyr-print -e ${0##*/}; exit 1; }
+
+DIR_NAME=$1
+SELF_EXTRACT_SH="${HOME}/.gyr.d/scripts/gyr-tar-selfextract"
+#SELF_EXTRACT_SH="~/.gyr.d/scripts/gyr-tar-selfextract"
+SELF_EXTRACT_FILE="selfextract.bsx"
+
+[ ! -d ${DIR_NAME} ] && { echo "${DIR_NAME} does not exist"; exit 1; }
+[ ! -x ${SELF_EXTRACT_SH} ] && { echo "${SELF_EXTRACT_SH} does not exist"; exit 1; }
+[ ! -x ${DIR_NAME}/installer ] && { echo "${DIR_NAME}/installer does not exist"; exit 1; }
+
+cd ${DIR_NAME}
+tar cf ../${DIR_NAME}.tar ./*
+cd ..
+
+if [ -e "${DIR_NAME}.tar" ]; then
+    gzip ${DIR_NAME}.tar
+
+    if [ -e "${DIR_NAME}.tar.gz" ]; then
+        cat ${SELF_EXTRACT_SH} ${DIR_NAME}.tar.gz > ${SELF_EXTRACT_FILE}
+        chmod 755 ${SELF_EXTRACT_FILE}
+        rm ${DIR_NAME}.tar.gz
+    else
+        echo "${DIR_NAME}.tar.gz does not exist"
+        exit 1
+    fi
+else
+    echo "${DIR_NAME}.tar does not exist"
+    exit 1
+fi
+
+echo "${SELF_EXTRACT_FILE} created"
+exit 0

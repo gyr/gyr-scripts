@@ -1,0 +1,20 @@
+#!/bin/zsh
+##################################
+#
+# Author: Gustavo Yokoyama Ribeiro
+# File:   lsv
+# Update: 20080318 16:49:29
+# (C) Copyright 2010 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: List views.
+# Usage: lsv [view_pattern]
+#
+##################################
+
+[[ $# -gt 1 ]] && { gyr-print -e "$0:t"; exit 1; }
+[[ $1 == "--help" ]] && { gyr-print-helper $0; exit 0; }
+
+[[ $# -eq 1 ]] && USER_PATTERN=$1 || USER_PATTERN=${USER}
+
+cleartool lsview | grep ${USER_PATTERN}

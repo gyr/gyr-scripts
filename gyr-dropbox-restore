@@ -1,0 +1,53 @@
+#!/bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:  gyr-dropbox-restore
+# Update: 20120127
+# (C) Copyright 2012 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Restore dropbox files
+# Usage: gyr-dropbox-restore
+#
+################################################################################
+
+[ "$1" = '--help' ] && { gyr-print-helper $0; exit 0; }
+
+# Always exit on errors
+set -e
+# Undefined variables, we don't like you
+set -u
+# ERR traps are inherited by shell functions, command substitutions and
+# commands executed in a subshell environment.
+set -E
+
+[ $# -ne 0 ] && { gyr-print -e ${0##*/}; exit 1; }
+
+GYR_DOT_DIR=$(readlink -e ${HOME}/.gyr.d) || { gyr-print -e ${0##*/} "Invalid recovery dir (.gyr.d)"; exit 1; }
+
+DIR_DROPBOX_BKP=${HOME}/Dropbox/bkp/gyrd
+if [ ! -d "${DIR_DROPBOX_BKP}" ]; then
+    DIR_DROPBOX_BKP=${HOME}/work/Dropbox/bkp/gyrd
+    if [ ! -d "${DIR_DROPBOX_BKP}" ]; then
+        gyr-print -e ${0##*/} "Invalid source Dropbox dir (${DIR_DROPBOX_BKP})"
+        exit 1
+    fi
+fi
+
+echo -e "[V]erify backup\n[R]estore .gyr.d directory"
+read -p "Select action (default = Verify): "
+if [[ "${REPLY}" =~ [Rr] ]]; then
+    RESTORE_TYPE='restore'
+    read -e -p "Enter restore directory: "
+    if [ ! -d "${REPLY}" ];then
+        gyr-print -e ${0##*/} "Invalid restore directory (${REPLY})"
+        exit 1
+    else
+        RESTORE_DIR=${REPLY}
+    fi
+else
+    RESTORE_TYPE='verify'
+fi
+PASSPHRASE=$(python -c "import keyring; print keyring.get_password('gyr','backup')") duplicity ${RESTORE_TYPE} --exclude "${GYR_DOT_DIR}/**/.hg" --exclude "${GYR_DOT_DIR}/**/.git" --exclude "${GYR_DOT_DIR}/dotfiles/vim/tmp/" file://${DIR_DROPBOX_BKP} ${RESTORE_DIR}
+#duplicity --force file:///tmp /tmp/lixo

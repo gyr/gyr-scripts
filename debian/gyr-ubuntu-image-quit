@@ -1,0 +1,39 @@
+#!/bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+ibm AT gmail DOT com>
+# File:  ubuntu-image-quit
+# Description: Quit a ISO image without build it.
+# Usage: ubuntu-image-quit
+#
+################################################################################
+
+
+#. ${0%/*}/ubuntu-image-conffile
+. ~/.gyr.d/scripts/debian/gyr-ubuntu-image-conffile
+
+echo "*** Cleaning/Unsetting chroot..."
+sudo chroot ${EDIT_DIR} <<EOF
+apt-get --quiet -y --force-yes autoremove --purge && echo "********** D O N E **********" || echo "********** F A I L E D ********"
+apt-get --quiet -y --force-yes autoclean && echo "********** D O N E **********" || echo "********** F A I L E D ********"
+apt-get --quiet -y --force-yes clean && echo "********** D O N E **********" || echo "********** F A I L E D ********"
+rm -rf /tmp/* ~/.bash_history /var/crash/*
+rm /etc/resolv.conf
+rm /var/lib/dbus/machine-id
+[ -L /sbin/initctl ] && rm /sbin/initctl && dpkg-divert --rename --remove /sbin/initctl
+umount -lf /proc
+umount /sys
+umount /dev/pts
+EOF
+[ -f ${EDIT_DIR}/etc/hosts.orig ] && sudo mv ${EDIT_DIR}/etc/hosts.orig ${EDIT_DIR}/etc/hosts
+echo "...DONE"
+
+echo "*** Umounting ${EDIT_DIR}/dev..."
+sudo umount -lf ${EDIT_DIR}/dev\
+    && echo "...DONE"\
+    || echo "...FAILED"
+
+echo "*** Umounting ISO at ${MNT_DIR}..."
+sudo umount -lf ${MNT_DIR}\
+    && echo "...DONE"\
+    || echo "...FAILED"

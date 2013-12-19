@@ -1,0 +1,31 @@
+#!/bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:  gyr-synergy-ssh
+# Update: 20110303 09:46:31
+# (C) Copyright 2011 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Start synergyc over a ssh connection
+# Usage: gyr-synergy-ssh <synergys_hostname>
+#
+################################################################################
+
+[ "$1" = '--help' ] && { gyr-print-helper $0; exit 0; }
+
+# Always exit on errors
+set -e
+# Undefined variables, we don't like you
+set -u
+# ERR traps are inherited by shell functions, command substitutions and
+# commands executed in a subshell environment.
+set -E
+
+[ $# -ne 1 ] && { gyr-print -e ${0##*/} "Syntax error"; exit 1; }
+
+SERVER_HOSTNAME=$1
+
+ssh -f -N -L 24800:${SERVER_HOSTNAME}:24800 ${SERVER_HOSTNAME}
+
+synergyc localhost

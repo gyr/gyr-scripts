@@ -1,0 +1,30 @@
+#!/bin/zsh
+##################################
+#
+# Author: Gustavo Yokoyama Ribeiro
+# File:   gyr-send-win-msg
+# Update: 20080319 11:37:32
+# (C) Copyright 2010 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Send message to Windows.
+# Usage: gyr-send-win-msg <string>
+#
+##################################
+
+[[ $1 == "--help" ]] && { gyr-print-helper $0; exit 0; }
+
+[[ $# -ne 1 ]] && { gyr-print -e "$0:t"; exit 1; }
+[[ ${OS} != linux ]] && { gyr-print -e "$0:t" "shall be executed in a linux."; exit 1; }
+
+#WIN_IP='dh206087.jag.br.mot.com'
+win_ip=($(who|grep ${USER}|tr -d "()" -s " "|cut -d ' ' -f 6))
+##WIN_IP=${WIN_IP/#rd*.jag/dh206224.jag}
+
+for i in ${win_ip}; do
+    echo ${i}
+    [[ ${i} == dh[0-9]*\.jag\.br\.mot\.com ]] && { echo $1 | smbclient -M ${USER} -I ${i}; exit 0; }
+done
+
+gyr-print -e "$0:t" "Invalid IP to send message."
+exit 1

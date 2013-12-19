@@ -1,0 +1,44 @@
+#!/bin/sh -e
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:  gyr-netcat-transfer
+# Update: 20120531
+# (C) Copyright 2012 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: 
+# Usage: gyr-netcat-transfer
+#
+################################################################################
+
+# http://blog.mister-muffin.de/2012/05/19/network-file-transfer-to-marvell-kirkwood/
+# by Johannes Schauer
+
+
+HOST=${2%%:*}
+USER=${HOST%%@*}
+if [ "$HOST" = "$2" -o "$USER" = "$HOST" ]; then
+    echo "second argument is not of form user@host:path" >&2
+    exit 1
+fi
+HOST=${HOST#*@}
+echo "HOST: $HOST"
+LPATH=$1
+echo "LPATH: $LPATH"
+LNAME=$(basename "$1")
+echo "LNAME: $LNAME"
+echo "${2#*:}/$LNAME"
+RPATH="${2#*:}/$LNAME"
+
+ssh "$USER@$HOST" "nc -l -p 8000 > $RPATH" &
+sleep 1.5
+pv "$LPATH" | nc "$HOST" 8000
+
+wait $!
+
+ssh "$USER@$HOST" "md5sum $RPATH" &
+md5sum "$LPATH"
+
+wait $!
+

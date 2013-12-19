@@ -1,0 +1,144 @@
+#!/bin/ksh
+############################################################
+# Create SDK Patch
+# Author: Paulo Martins
+############################################################
+
+######################################################################
+# Function definition
+######################################################################
+
+
+#######################################
+# Main processing
+#######################################
+# Get operating system
+OS=$(uname -a | cut -f1 -d" ")
+
+if [[ "$1" = "" ]]; then
+   # No target directory provided
+   SDK_DIR=/vobs/linuxjava/platform
+elif [[ "$1" = "-dir" ]]; then
+   shift
+   SDK_DIR=$1
+else
+   echo "Invalid argument"
+   echo "Syntax: createSdk [-dir <target dir for sdk patch>]"
+   exit 1
+fi
+
+if [[ ! -d ${SDK_DIR} ]]; then
+  echo "Could not find the target directory:"
+  echo "${SDK_DIR}"
+  exit 1
+fi
+
+NOMSG=false
+
+CURRENT_VIEW=$(cleartool pwv -s)
+if [[ $CONFIG_SPEC_TAG = "" ]]; then
+   if [[ "$CURRENT_VIEW" = "** NONE **" ]]; then
+     ec  ho "Error: There is no view currently set"
+     exit 1
+   fi
+   CONFIG_SPEC_TAG=$CURRENT_VIEW
+fi
+
+CATCS="cleartool catcs -tag $CONFIG_SPEC_TAG"
+
+IMPS_LABEL=$(${CATCS} | grep "element \* IMPS" | cut -f3 -d" " | tail -1)
+IMPS_LABEL=${IMPS_LABEL%*\ }      # Remove extra spaces (trim)
+
+LJAP_LABEL=$(${CATCS} | grep "element \* LJAP" | cut -c11-200)
+LJAP_LABEL=${LJAP_LABEL%*\ }      # Remove extra spaces (trim)
+
+DEV_BRANCH=$(${CATCS} | grep "element \* IMPSLJ" | grep -v "^#" | grep mkbranch | cut -d" " -f5)
+DEV_BRANCH=${DEV_BRANCH%*\ }      # Remove extra spaces (trim)
+
+FILE_LIST=/tmp/private_files_`date +%Y%m%d-%H%M%S`.txt
+TAR_FILE=${SDK_DIR}/sdk_patch_${LJAP_LABEL}.tgz
+
+echo ""
+echo "#########################"
+echo "  createSdk"
+echo "#########################"
+echo ""
+echo "This script will create a repository with all private files of current view"
+echo "Then, this repository can be used to minimize the buidl time, since the platform files will be already compiled"
+echo ""
+echo "Current view: $CONFIG_SPEC_TAG"
+echo "IMPS Label:   ${IMPS_LABEL}"
+echo "LJAP Label:   ${LJAP_LABEL}"
+echo ""
+echo "Target file: ${TAR_FILE}"
+echo ""
+echo "Press ENTER to start"
+read
+
+if [[ -a ${TAR_FILE} ]]; then
+  echo "ERROR: Target file already exists (${TAR_FILE})"
+  echo "       Please rename or remove it and try again"
+  exit 1
+fi
+
+echo ""
+echo "Listing files in $FILE_LIST ..."
+cleartool lspr | grep -v "\.o" | grep -v "\.cpp" | grep -v "\.bak" | grep -v "\.contrib" | grep -v "\@\@" | tee $FILE_LIST
+echo "Listing files in $FILE_LIST ... done"
+
+TOTALFILES=$(cat ${FILE_LIST} | wc -l)
+echo ""
+echo "There are ${TOTALFILES} files"
+echo ""
+
+echo "Creating tgz file in $TAR_FILE ..."
+
+if [[ "$OS" != "Linux" ]]; then
+  #######################
+  # Tar command in Sun OS does not support gzip 
+  # Need to run zip separated
+  TMP_TAR_FILE=${SDK_DIR}/sdk_patch_${LJAP_LABEL}.tar
+  tar cf ${TMP_TAR_FILE} -I $FILE_LIST
+  gzip -c ${TMP_TAR_FILE} > $TAR_FILE
+  rm -f ${TMP_TAR_FILE}
+
+else
+  #######################
+  # Tar command in Linux
+  # -c Create
+  # -z Compress uzing gzip
+  # -T Get name of files from an input file
+  #
+  echo "tar -c -z -T $FILE_LIST -f $TAR_FILE"
+  tar -c -z -T $FILE_LIST -f $TAR_FILE
+fi
+
+echo "Creating tgz file in $TAR_FILE ... done"
+
+echo ""
+echo "Deleting $FILE_LIST ..."
+echo
+#rm -f $FILE_LIST
+echo "Deleting $FILE_LIST ... done"
+
+echo ""
+echo "#########################"
+echo "Done!"
+echo "#########################"
+echo ""
+echo "Tarball (\"SDK\" patch) created: ${TAR_FILE}"
+echo ""
+echo "Use the following commands to extract in the target view:"
+echo ""
+echo " cd /"
+echo " tar -xzvf ${TAR_FILE}"
+echo ""
+
+if [[ $NOMSG = false ]]; then
+   #
+   # Send message informing, patch is created (uses IP defined in file ~/ip.address).
+   #
+   echo "Sending message..."
+   sendMsgWin "--------------------\nATTENTION:\nSDK Patch finished $HOST\n${TAR_FILE}\n--------------------"
+   echo "Sending message... done"
+fi

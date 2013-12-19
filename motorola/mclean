@@ -1,0 +1,102 @@
+#!/bin/zsh
+##################################
+#
+# Author: Gustavo Yokoyama Ribeiro
+# File:   mclean
+# Update: 20080318 16:55:05
+# (C) Copyright 2010 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Clear obj files.
+# Usage: mclean <-iscdpoa>
+#   -i: clear IM.
+#   -s: clear Engine Server.
+#   -c: clear Engine Client.
+#   -d: clear Database.
+#   -p: clear Presence Provider.
+#   -o: clear other IMPS
+#
+##################################
+
+[[ -z ${CLEARCASE_ROOT} ]] && { gyr-print -e "$0:t" "view not set."; exit 1; }
+
+[[ $# -eq 1 && $1 == "--help" ]] && { gyr-print-helper $0; exit 0; }
+
+target_dirs=(
+'/vobs/core_imps/code/im/lj/binary'
+'/vobs/core_imps/code/im/lj/lib/engine_server'
+'/vobs/core_imps/code/im/lj/lib/engine_client'
+'/vobs/core_imps/code/im/lj/lib/db_query'
+'/vobs/core_imps/code/im/lj/lib/db_sql_wrapper'
+'/vobs/core_imps/code/im/lj/lib/presence_provider'
+'/vobs/core_imps/code/im/lj/lib/COMMUNITY_SERVICE'
+'/vobs/core_imps/code/im/lj/lib/IMPS_AVAILABILITY'
+'/vobs/core_imps/code/im/lj/lib/IMPS_BASE_CLASSES'
+'/vobs/core_imps/code/im/lj/lib/IMPS_SETTINGS'
+'/vobs/core_imps/code/im/lj/lib/IMPS_SMS_PLUGIN'
+'/vobs/core_imps/code/im/lj/lib/IMPS_STATUS'
+'/vobs/core_imps/code/im/lj/lib/utility'
+'/vobs/core_imps/code/im/lj/components/notification_service/binary'
+)
+
+while getopts ':iscdpoa' OPT_NAME 2> /dev/null; do
+    case ${OPT_NAME} in
+    'i')
+        START_DIR=1
+        END_DIR=${START_DIR}
+        ;;
+    's')
+        START_DIR=2
+        END_DIR=${START_DIR}
+        ;;
+    'c')
+        START_DIR=3
+        END_DIR=${START_DIR}
+        ;;
+    'd')
+        START_DIR=4
+        END_DIR=5
+        ;;
+    'p')
+        START_DIR=6
+        END_DIR=${START_DIR}
+        ;;
+    'o')
+        START_DIR=7
+        END_DIR=${#target_dirs}
+        ;;
+    'a')
+        START_DIR=1
+        END_DIR=${#target_dirs}
+        ;;
+    '?')
+        gyr-print -e ${0##*/} "Invalid option: -${OPTARG}."
+        exit 1
+        ;;
+    ':')
+        gyr-print -e ${0##*/} "Required argument not found for option -${OPTARG}."
+        exit 1
+        ;;
+    *)
+        gyr-print -e ${0##*/} "Unknown error while processing options."
+        exit 1
+        ;;
+    esac
+done
+
+[[ ${OPTIND} -eq 1 || $# -gt 1 ]] && { gyr-print -e "$0:t"; exit 1; }
+
+COUNT_DIR=${START_DIR}
+#while [[ ${COUNT_DIR} -le ${END_DIR} ]]
+while (( ${COUNT_DIR} <= ${END_DIR} ))
+do
+    gyr-echo "Cleaning ${target_dirs[${COUNT_DIR}]}..."
+    cd ${target_dirs[${COUNT_DIR}]} && if [[ -f Makefile ]]; then
+            make clean
+            rm -vf ${target_dirs[${COUNT_DIR}]}/Makefile
+            rm -vf ${target_dirs[${COUNT_DIR}]}/.cmake*
+        fi
+    gyr-echo "Cleaning ${target_dirs[${COUNT_DIR}]}... done"
+#    COUNT_DIR=$((${COUNT_DIR}+1))
+    (( COUNT_DIR++ ))
+done

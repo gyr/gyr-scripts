@@ -1,0 +1,17 @@
+#!/usr/bin/expect -f
+log_user 0 ####this command is used to hide the conversationn between the script and the other machine
+set address [lindex $argv 0] ###assign the first passed parameter while calling the script to $address
+set username [lindex $argv 1] ###assign the 2nd passed parameter while calling the script to $username
+set password [lindex $argv 2] ###assign the 3rd passed parameter while calling the script to $password
+spawn telnet ${address} ###start the telnet session to machine with IP=$address
+###start conversation with the machine:
+expect "login:"
+send -- "${username}\r"
+expect "Password:"
+send -- "${password}\r"
+expect "$ "
+send -- "#!/bin/sh\r" ###declare the shell to be used (optional)
+expect "$ "
+send -- "###type her any command you want to execute"
+expect "$ "
+send -- "exit\r" ###end the telnet session and exit the script

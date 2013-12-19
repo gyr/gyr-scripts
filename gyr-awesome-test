@@ -1,0 +1,25 @@
+#!/bin/bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:  gyr-awesome-test
+# Update: 20111206
+# (C) Copyright 2011 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Test a new awesome wm config
+# Usage: gyr-awesome-test
+#
+################################################################################
+
+# Always exit on errors
+set -e
+# Undefined variables, we don't like you
+set -u
+# ERR traps are inherited by shell functions, command substitutions and
+# commands executed in a subshell environment.
+set -E
+
+Xephyr -ac -br -noreset -screen 1152x720 :1 &
+sleep 5
+DISPLAY=:1.0 awesome -c ~/.config/awesome/rc.lua

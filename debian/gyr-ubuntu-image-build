@@ -1,0 +1,72 @@
+#!/bin/bash -e
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+ibm AT gmail DOT com>
+# File:  ubuntu-image-build
+# Description: Build Ubuntu ISO image
+# Usage: ubuntu-image-build
+#
+################################################################################
+
+
+#. ${0%/*}/ubuntu-image-conffile
+. ~/.gyr.d/scripts/debian/gyr-ubuntu-image-conffile
+
+echo "*** Cleaning/Unsetting chroot..."
+sudo chroot ${EDIT_DIR} <<EOF
+apt-get --quiet -y --force-yes autoremove --purge && echo "********** D O N E **********" || echo "********** F A I L E D ********"
+apt-get --quiet -y --force-yes autoclean && echo "********** D O N E **********" || echo "********** F A I L E D ********"
+apt-get --quiet -y --force-yes clean && echo "********** D O N E **********" || echo "********** F A I L E D ********"
+rm -rf /tmp/* ~/.bash_history /var/crash/*
+rm /etc/resolv.conf
+rm /var/lib/dbus/machine-id
+[ -L /sbin/initctl ] && rm /sbin/initctl && dpkg-divert --rename --remove /sbin/initctl
+umount -lf /proc
+umount /sys
+umount /dev/pts
+EOF
+[ -f ${EDIT_DIR}/etc/hosts.orig ] && sudo mv ${EDIT_DIR}/etc/hosts.orig ${EDIT_DIR}/etc/hosts
+echo "...DONE"
+
+echo "*** Umounting ${EDIT_DIR}/dev..."
+sudo umount -lf ${EDIT_DIR}/dev \
+    && echo "...DONE"\
+    || echo "...FAILED"
+
+echo "*** Regenerating manifest: ${EXTRACT_CD_DIR}/casper/filesystem.manifest-desktop..."
+chmod +w ${EXTRACT_CD_DIR}/casper/filesystem.manifest
+sudo chroot ${EDIT_DIR} dpkg-query -W --showformat='${Package} ${Version}\n' > ${EXTRACT_CD_DIR}/casper/filesystem.manifest
+sudo cp ${EXTRACT_CD_DIR}/casper/filesystem.manifest ${EXTRACT_CD_DIR}/casper/filesystem.manifest-desktop
+sudo sed -i '/ubiquity/d' ${EXTRACT_CD_DIR}/casper/filesystem.manifest-desktop
+sudo sed -i '/casper/d' ${EXTRACT_CD_DIR}/casper/filesystem.manifest-desktop
+echo "...DONE"
+
+echo "*** Compressing filesystem: ${EXTRACT_CD_DIR}/casper/filesystem.squashfs..."
+[ -f ${EXTRACT_CD_DIR}/casper/filesystem.squashfs ] && sudo rm ${EXTRACT_CD_DIR}/casper/filesystem.squashfs
+sudo mksquashfs ${EDIT_DIR} ${EXTRACT_CD_DIR}/casper/filesystem.squashfs
+echo "...DONE"
+
+#echo "*** Seting an image name in ${EXTRACT_CD_DIR}/README.diskdefines..."
+#sudo vim ${EXTRACT_CD_DIR}/README.diskdefines
+#echo "...DONE"
+
+echo "*** Removing old md5sum.txt and calculating new md5 sums: ${EXTRACT_CD_DIR}/md5sum.txt..."
+sudo rm ${EXTRACT_CD_DIR}/md5sum.txt
+sudo -s <<EOF
+(cd ${EXTRACT_CD_DIR} && find . -type f -print0 | xargs -0 md5sum | grep -v isolinux/boot.cat | sudo tee md5sum.txt)
+EOF
+echo "...DONE"
+
+echo "*** Creating ISO ${CUSTOM_ISO}..."
+pushd ${EXTRACT_CD_DIR}
+sudo mkisofs -D -r -V "${IMAGE_NAME}" -cache-inodes -J -l -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -o ${CUSTOM_ISO} .
+popd
+echo "...DONE"
+
+#echo "*** Creating md5sum file..."
+#md5sum ${CUSTOM_ISO} > ${CUSTOM_ISO}.md5sums
+#echo "...DONE"
+
+#echo "*** Creating sha1sum file..."
+#sha1sum ${CUSTOM_ISO} > ${CUSTOM_ISO}.sha1sums
+#echo "...DONE"

@@ -1,0 +1,43 @@
+#!/bin/sh
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# File:   gyr-deb-pdebuild-base
+# Update: 20110723
+# Based on script from Jamin W. Collins  BTS: #255165
+# (C) Copyright 2011 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: wrapper for pdebuild (pbuilder and cowbuilder)
+# Usage: ln -s gyr-deb-pbuilder-base gyr-pbuilder-<release>-<arch>-<builder>
+#   ex: ln -s gyr-deb-pdebuild-base gyr-pdebuild-lucid-i386-pbuilder
+#       ln -s gyr-deb-pdebuild-base gyr-pdebuild-lucid-i386-cowbuilder
+#
+################################################################################
+
+export DIST=`basename $0 | cut -f3 -d '-'`
+export ARC=`basename $0 | cut -f4 -d '-'`
+BUILDER=`basename $0 | cut -f5 -d '-'`
+#BASE_DIR="/var/cache/pbuilder"
+#TIMESTAMP=`date "+%y%m%d%H%M%S"`
+#LOGFILE=$BASE_DIR/result/$DISTRIBUTION-$ARCH-result/logfile-$TIMESTAMP
+#CONFIGFILE=$HOME/.pbuilderrc-$DISTRIBUTION-$ARCH
+
+echo "PDEBUILD SCRIPT DIST:$DIST ARCH:$ARC"
+case $BUILDER in
+    'pbuilder')
+        #linux32 pdebuild --configfile $CONFIGFILE --logfile $LOGFILE --debbuildopts -a$ARCH
+        #linux32 pdebuild --configfile $CONFIGFILE  --debbuildopts -a$ARCH
+        #export BASETGZ=$BASE_DIR/$DISTRIBUTION-$ARCH/base.tgz
+        #linux32 pdebuild --debbuildopts -a$ARCH -- --basetgz $BASETGZ --buildresult $PWD/..
+        linux32 pdebuild --debbuildopts "-a$ARC -sa" --
+        ;;
+    'cowbuilder')
+        #export BASEPATH=$BASE_DIR/$DISTRIBUTION-$ARCH.cow/
+        linux32 pdebuild --pbuilder cowbuilder --debbuildopts "-a$ARC -sa" -- --buildresult $PWD/..
+        ;;
+    *)
+        echo "Invalid builder command: $BUILDER"
+        exit 1
+        ;;
+esac
