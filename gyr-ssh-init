@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 ################################################################################
 #
 # Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>

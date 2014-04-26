@@ -1,3 +1,3 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
 tmpfile=$(mktemp) && echo -e 'startup_message off\nscreen -t top htop\nsplit\nfocus\nscreen -t nethogs nethogs wlan0\nsplit\nfocus\nscreen -t iotop iotop\nfocus' > $tmpfile && sudo screen -c $tmpfile

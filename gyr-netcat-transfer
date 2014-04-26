@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/usr/bin/env sh
 ################################################################################
 #
 # Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
@@ -11,6 +11,8 @@
 # Usage: gyr-netcat-transfer
 #
 ################################################################################
+
+set -e
 
 # http://blog.mister-muffin.de/2012/05/19/network-file-transfer-to-marvell-kirkwood/
 # by Johannes Schauer
@@ -41,4 +43,3 @@ ssh "$USER@$HOST" "md5sum $RPATH" &
 md5sum "$LPATH"
 
 wait $!
-

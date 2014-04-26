@@ -10,7 +10,7 @@ send -- "${username}\r"
 expect "Password:"
 send -- "${password}\r"
 expect "$ "
-send -- "#!/bin/sh\r" ###declare the shell to be used (optional)
+send -- "#!/usr/bin/env sh\r" ###declare the shell to be used (optional)
 expect "$ "
 send -- "###type her any command you want to execute"
 expect "$ "

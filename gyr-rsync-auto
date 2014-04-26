@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 ################################################################################
 #
 # Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
@@ -39,15 +39,9 @@ LIST_DIR=".gnupg .gyr.d .ibm.d .xchat2 .sylpheed-2.0 .purple lotus Documents Sam
 
 for i in ${LIST_DIR}; do
     echo "Sync'ing ${LOCAL_DIR}/$i -> ${REMOTE_HOST}:${REMOTE_DIR}/"
-    rsync -CravzpthHx --update --delete ${LOCAL_DIR}/${i} ${REMOTE_HOST}:${REMOTE_DIR}/
+    rsync -Cavz --update --delete ${LOCAL_DIR}/${i} ${REMOTE_HOST}:${REMOTE_DIR}/
     # -C, --cvs-exclude
-    # -r, --recursive
-    # -a, --archive
+    # -a, --archive (is equivalent to -rlptgoD)
     # -v, --verbose
     # -z, --compress
-    # -p, --perms
-    # -t, --times
-    # -h, --human-readable
-    # -H, --hard-links
-    # -x, --one-file-system
 done
