@@ -31,17 +31,28 @@ if ! ping -c 2 ${REMOTE_HOST} > /dev/null 2>&1; then
     { gyr-print -e ${0##*/} "Invalid host ${REMOTE_HOST}"; exit 1; }
 fi
 
-eval $(/usr/bin/keychain --eval --agents ssh,gpg -Q --quiet ~/.ssh/id_rsa) || { gyr-print -e ${0##*/} "keychain: ERROR"; exit 1; }
+REMOTE_DIR='/work'
+LOCAL_DIR="$HOME/work/annex"
+gyr-print -i "Sync'ing ${LOCAL_DIR} -> ${REMOTE_HOST}:${REMOTE_DIR}"
+rsync -Cavz --update --delete ${LOCAL_DIR} ${REMOTE_HOST}:${REMOTE_DIR}
+#LIST_DIR=".gnupg .gyr.d .ibm.d .purple .xchat2"
+#
+#for i in ${LIST_DIR}; do
+#    gyr-print -i "Sync'ing ${LOCAL_DIR}/$i -> ${REMOTE_HOST}:${REMOTE_DIR}/"
+#    rsync -Cavz --update --delete ${LOCAL_DIR}/${i} ${REMOTE_HOST}:${REMOTE_DIR}/
+#    # -C, --cvs-exclude
+#    # -a, --archive (is equivalent to -rlptgoD)
+#    # -v, --verbose
+#    # -z, --compress
+#done
 
-LOCAL_DIR=$HOME
-REMOTE_DIR='/work/gyr'
-LIST_DIR=".gnupg .gyr.d .ibm.d .xchat2 .sylpheed-2.0 .purple lotus Documents SametimeMeetings SametimeRooms"
-
-for i in ${LIST_DIR}; do
-    echo "Sync'ing ${LOCAL_DIR}/$i -> ${REMOTE_HOST}:${REMOTE_DIR}/"
-    rsync -Cavz --update --delete ${LOCAL_DIR}/${i} ${REMOTE_HOST}:${REMOTE_DIR}/
-    # -C, --cvs-exclude
-    # -a, --archive (is equivalent to -rlptgoD)
-    # -v, --verbose
-    # -z, --compress
-done
+#LIST_DIR="lotus Documents SametimeMeetings SametimeRooms"
+#LOCAL_DIR=$HOME
+#for i in ${LIST_DIR}; do
+#    gyr-print -i "Sync'ing ${LOCAL_DIR}/$i -> ${REMOTE_HOST}:${REMOTE_DIR}/"
+#    rsync -Cavz --update --delete ${LOCAL_DIR}/${i} ${REMOTE_HOST}:${REMOTE_DIR}/
+#    # -C, --cvs-exclude
+#    # -a, --archive (is equivalent to -rlptgoD)
+#    # -v, --verbose
+#    # -z, --compress
+#done

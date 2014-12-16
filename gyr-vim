@@ -7,18 +7,17 @@
 # (C) Copyright 2010 Gustavo Yokoyama Ribeiro
 # Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
 # http://creativecommons.org/licenses/by-sa/3.0/ for more info.
-# Description: vim server wrapper
-# Usage: gyr-vim [-gv] [filename]
-#   -g: use gvim server
+# Description: vim server wrapper (default is gvim server)
+# Usage: gyr-vim [-vhf] [filename]
 #   -v: use vim server
 #   -h: remote acess (scp)
 #   -f: autosearch filename
 #
 ################################################################################
 
-# on ubuntu need vim-gnome package
-
 [ "$1" = '--help' ] && { gyr-print-helper $0; exit 0; }
+
+# on ubuntu need vim-gnome package
 
 # Always exit on errors
 set -e
@@ -30,14 +29,14 @@ set -E
 
 _server_name=
 _remote_host=
+_server_name='GVIM'
+_vim_binary='gvim'
 
-while getopts 'h:f:gv' OPT_NAME 2> /dev/null; do
+while getopts 'h:f:v' OPT_NAME 2> /dev/null; do
     case ${OPT_NAME} in
-        'g')
-            _server_name='GVIMGYR'
-            ;;
         'v')
             _server_name='VIMGYR'
+            _vim_binary='vim'
             ;;
         'h')
             _remote_host="scp://${OPTARG}"
@@ -82,4 +81,4 @@ if [ -n "${_server_name}" ]; then
     _server_name="--servername ${_server_name}"
 fi
 
-vim ${_server_name} ${_file_name}
+exec ${_vim_binary} ${_server_name} ${_file_name}

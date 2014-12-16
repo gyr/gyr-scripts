@@ -47,8 +47,8 @@ while getopts ':i:e:l:' OPT_NAME 2> /dev/null; do
         ;;
         'e')
             MSG_TYPE="${COLOR_LIGHT_RED}[ERROR]${COLOR_RESET}"
-            MSG_MAIN=${OPTARG}
-            MSG_TEXT=": Syntax error."
+            MSG_MAIN="${OPTARG}:"
+            MSG_TEXT="Syntax error."
         ;;
         'l')
             MSG_TYPE="${COLOR_LIGHT_CYAN}[LOG]${COLOR_RESET}"

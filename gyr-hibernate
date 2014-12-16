@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+vim AT gmail DOT com>
+# File:  gyr-hibernate
+# Update: 20141103
+# (C) Copyright 2014 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Hibernate wrapper.
+# Usage: gyr-hibernate [-c]
+#   -c: clear firefox db and chromium cache
+#
+################################################################################
+
+[ $# -eq 1 -a "$1" = '--help' ] && { gyr-print-helper $0; exit 0; }
+
+# Always exit on errors
+set -e
+# Undefined variables, we don't like you
+set -u
+# ERR traps are inherited by shell functions, command substitutions and
+# commands executed in a subshell environment.
+set -E
+
+if [ $# -eq 1 ]; then
+    if [ "$1" = '-c' ]; then
+        # cleanup firefox db and chromium cache
+        gyr-print -i "Cleaning firefox and chromium..."
+        gyr-firefox-clean-db
+
+        # dropping cache memory
+        gyr-print -i "Dropping cache memory..."
+        sync
+        free -h
+        sudo sync
+        echo 3 | sudo tee /proc/sys/vm/drop_caches
+        free -h
+    fi
+fi
+
+# hibernate system
+read -p "Hibernate? [y/N] "
+if [[ "${REPLY}" =~ [Yy] ]]; then
+    gyr-print -i "Starting hibernate..."
+    sudo systemctl hibernate
+fi

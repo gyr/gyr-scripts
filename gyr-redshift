@@ -20,5 +20,12 @@ set -u
 # commands executed in a subshell environment.
 set -E
 
-pkill ^redshift ||:
-redshift -l -22.50:-47.00 -t 6500:5500 -m vidmode &
+#pkill ^redshift ||:
+#redshift -l -22.50:-47.00 -t 6500:5500 -m vidmode &
+
+# based on my-redshift from joey hess 
+if ! pidof redshift; then
+    exec redshift -l 36:-30 -r -t 5800:3000 -g 0.9 &
+else
+    killall redshift ||:
+fi

@@ -7,7 +7,7 @@
 # (C) Copyright 2010 Gustavo Yokoyama Ribeiro
 # Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
 # http://creativecommons.org/licenses/by-sa/3.0/ for more info.
-# Description: start up ssh-agent with keychain
+# Description: start up ssh-agent and gpg-agent
 # Usage: gyr-ssh-init
 #
 ################################################################################
@@ -24,9 +24,29 @@ set -E
 
 [ $# -ne 0 ] && { gyr-print -e ${0##*/}; exit 1; }
 
-### START-Keychain ###
-# Let  re-use ssh-agent and/or gpg-agent between logins
-/usr/bin/keychain --eval --agents ssh,gpg -Q --quiet ~/.ssh/id_rsa
-[ -f ~/.keychain/${HOSTNAME}-sh ] && echo "Config ssh-agent:\n. ~/.keychain/${HOSTNAME}-sh"
-[ -f ~/.keychain/${HOSTNAME}-sh-gpg ] && echo"Config ssh-agent:\n. ~/.keychain/${HOSTNAME}-sh-gpg"
-### End-Keychain ###
+# SSH - reset sharing of multiple sessions over a single network connection.
+gyr-print -i "Resetting ssh mulitple sessions sharing..."
+for i in ${HOME}/.ssh/master-*; do
+    rm -v $i |:
+done
+
+### START-SSH ###
+gyr-print -i "Terminating any previous ssh-agent..."
+eval $(ssh-agent -k)
+ssh-agent -k |:
+killall ssh-agent |:
+gyr-print -i "Starting ssh-agent..."
+eval $(ssh-agent)
+gyr-print -i "Adding ssh keys..."
+ssh-add
+gyr-print -i "Keys added:"
+ssh-add -l
+### End-SSH ###
+
+### START-GPG ###
+gyr-print -i "Terminating any previous gpg-agent..."
+killall gpg-agent |:
+gyr-print -i "Starting ssh-agent"
+eval $(gpg-agent --daemon)
+# B0E4F0BA
+### End-GPG ###

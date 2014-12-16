@@ -1,0 +1,37 @@
+#!/usr/bin/env sh
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+vim AT gmail DOT com>
+# File:  gyr-timer
+# Update: 20140624
+# (C) Copyright 2014 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Timer to control work
+# Usage: gyr-timer
+#
+################################################################################
+
+# Always exit on errors
+set -e
+# Undefined variables, we don't like you
+set -u
+# ERR traps are inherited by shell functions, command substitutions and
+# commands executed in a subshell environment.
+set -E
+
+_m_working=90
+_s_working=$((60*${_m_working}))
+_count=0
+
+while true; do
+    _date=$(date  +"%H:%M")
+    while [ ${_count} -lt ${_s_working} ]; do
+        echo $((${_count}*100/${_s_working}))
+        _count=$((${_count}+1))
+        sleep 1
+    done | zenity --title="TIMER" --progress --auto-close --text="Timer: ${_m_working} min started @ ${_date}\t"
+    echo "\a"
+    _date=$(date  +"%H:%M")
+    zenity --title="TIMER" --question --text="Timer has finished @ ${_date}. Continue?" || exit 0
+done

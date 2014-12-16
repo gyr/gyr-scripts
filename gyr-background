@@ -1,0 +1,26 @@
+#!/usr/bin/env sh
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr+vim AT gmail DOT com>
+# File:  gyr-background
+# Update: 20141208
+# (C) Copyright 2014 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: background command
+# Usage: gyr-background <command>
+#
+################################################################################
+
+
+# http://felixmilea.com/2014/12/running-bash-commands-background-properly/
+
+if test -t 1; then
+    exec 1>/dev/null
+fi
+
+if test -t 2; then
+    exec 2>/dev/null
+fi
+
+"$@" &

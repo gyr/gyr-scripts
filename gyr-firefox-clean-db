@@ -24,9 +24,21 @@ set -E
 
 [ $# -ne 0 ] && { gyr-print -e ${0##*/}; exit 1; }
 
-if ! ps -ef | grep firefox > /dev/null 2>&1; then
-    gyr-print -e ${0##*/} "Firefox is running."
+#if ps -ef | grep "\(firefox\|iceweasel\)" > /dev/null 2>&1; then
+if pgrep iceweasel; then
+    gyr-print -e ${0##*/} "Firefox/Iceweasel is running."
     exit 1
 fi
 
+gyr-print -i "Vacuuming SQLite firefox/icewasel databases"
 find ${HOME}/.mozilla/firefox -type f -name "*.sqlite" -exec sqlite3 {} vacuum \;
+
+# Cleanup unnecessary files
+gyr-print -i "Cleanning chromium cache..."
+rm -rf $HOME/.cache/chromium
+gyr-print -i "Cleanning thumbnails cache..."
+rm -rf $HOME/.thumbnails
+gyr-print -i "Cleanning Trash..."
+rm -rf $HOME/.local/share/Trash
+gyr-print -i "Cleanning flash..."
+rm -rf $HOME/.macromedia

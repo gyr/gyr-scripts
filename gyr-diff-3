@@ -25,4 +25,5 @@ set -E
 [ $# -ne 2 ] && { gyr-print -e ${0##*/}; exit 1; }
 [ ! -d $1 -o ! -d $2 ] && { gyr-print -e ${0##*/} "Invalid directory"; exit 1; }
 
-diff -rq $1 $2 #| awk '/differ/ {print "echo "$2" "$4}'
+diff -rq $1 $2
+#diff -rq $1 $2 | awk '/differ/ {print "echo "$2" "$4}'

@@ -64,10 +64,10 @@ done
 
 case $# in
     0)
-        screen -s ${LOCAL_SHELL} -t "${LOCAL_TITLE}" -a -A -U
+        exec screen -s ${LOCAL_SHELL} -t "${LOCAL_TITLE}" -a -A -U
         ;;
     1)
-        screen -s ${LOCAL_SHELL} -t "${LOCAL_TITLE}" -a -A -U -D -R $1
+        exec screen -s ${LOCAL_SHELL} -t "${LOCAL_TITLE}" -a -A -U -D -R $1
         ;;
     #*)
     #    [ "$1" = 'ssh' ] && screen -s ${LOCAL_SHELL}  -t "$(echo $2)" $* || screen -s ${LOCAL_SHELL} -t "$(echo $1)" $*

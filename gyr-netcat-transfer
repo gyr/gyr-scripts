@@ -14,6 +14,14 @@
 
 set -e
 
+# Always exit on errors
+set -e
+# Undefined variables, we don't like you
+set -u
+# ERR traps are inherited by shell functions, command substitutions and
+# commands executed in a subshell environment.
+set -E
+
 # http://blog.mister-muffin.de/2012/05/19/network-file-transfer-to-marvell-kirkwood/
 # by Johannes Schauer
 

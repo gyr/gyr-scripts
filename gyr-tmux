@@ -30,7 +30,7 @@ if [ $# -eq 0 ]; then
     _client_session=${_base_session}.$(date +%S)
     #tmux -2 new-session -d -t ${_base_session} -s ${_client_session} \; set-option -q destroy-unattached \; attach-session -t ${_client_session}
     # since tmux 1.8 -A option is available:
-    tmux -2 new-session -A -t ${_base_session} -s ${_client_session} \; set-option -q destroy-unattached
+    exec tmux -2 new-session -A -t ${_base_session} -s ${_client_session} \; set-option -q destroy-unattached
     #if tmux -q has-session -t $USER@$HOSTNAME; then
     #    exec tmux -2 attach-session -d -t $USER@$HOSTNAME
     #else

@@ -25,13 +25,23 @@ set -E
 
 [ $# -ne 0 ] && { gyr-print -e ${0##*/}; exit 1; }
 
-for agent in /tmp/ssh-*/agent.*; do
-    export SSH_AUTH_SOCK=$agent
-    if ssh-add -l > /dev/null 2>&1; then
-        gyr-print -i "Found working SSH Agent:"
-        ssh-add -l
-        exit 0
-    fi
-done
-gyr-print -i "Cannot find ssh agent, running keychain.."
-gyr-ssh-init
+#for agent in /tmp/ssh-*/agent.*; do
+#    export SSH_AUTH_SOCK=$agent
+#    if ssh-add -l > /dev/null 2>&1; then
+#        gyr-print -i "Found working SSH Agent:"
+#        ssh-add -l
+#        exit 0
+#    fi
+#done
+
+if ! pgrep ssh-agent; then
+    gyr-print -i "ssh-agent not found!"
+    gyr-ssh-init
+else
+    gyr-print -i "Cleanning ssh keys..."
+    ssh-add -D
+    gyr-print -i "Adding ssh keys..."
+    ssh-add
+    gyr-print -i "Keys added:"
+    ssh-add -l
+fi

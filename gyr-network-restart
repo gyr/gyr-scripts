@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gustavoyr@gmail.com>
+# File:  gyr-network-restart
+# Update: 20120202
+# (C) Copyright 2012 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: Config wifi
+# Usage: gyr-network-restart
+#
+################################################################################
+
+# Always exit on errors
+set -e
+# Undefined variables, we don't like you
+set -u
+# ERR traps are inherited by shell functions, command substitutions and
+# commands executed in a subshell environment.
+set -E
+
+while getopts 'hi' OPT_NAME 2> /dev/null; do
+    case ${OPT_NAME} in
+        'h')
+            _target='gyr'
+            ;;
+        'i')
+            _target='ibm'
+            ;;
+        '?')
+            gyr-print -e ${0##*/} "Invalid option: -${OPTARG}."
+            exit 1
+            ;;
+        ':')
+            gyr-print -e ${0##*/} "Required argument not found for option -${OPTARG}."
+            exit 1
+            ;;
+        *)
+            gyr-print -e ${0##*/} "Unknown error while processing options."
+            exit 1
+            ;;
+    esac
+done
+
+gyr-print -i "Terminating previous openconnect..."
+sudo pkill openconnect |:
+gyr-print -i "Terminating nm-applet..."
+killall nm-applet |:
+
+gyr-print -i "Restarting networking.service..."
+sudo systemctl restart networking.service
+gyr-print -i "Restarting NetworkManager.service..."
+sudo systemctl restart NetworkManager.service
+
+if [ "${_target:-gyr}" = 'ibm' ]; then
+    gyr-print -i "Starting nm-applet..."
+    nm-applet &
+    gyr-print -i "BSO authentication..."
+    ibm-bso
+else
+    gyr-print -i "Starting openconnect..."
+    ${HOME}/.ibm.d/scripts/ibm-openconnect-vpnc.pl
+fi
+
+gyr-print -i "Starting keychain..."
+ssh-add

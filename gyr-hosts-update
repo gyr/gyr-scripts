@@ -12,6 +12,14 @@
 #
 ################################################################################
 
+# Always exit on errors
+set -e
+# Undefined variables, we don't like you
+set -u
+# ERR traps are inherited by shell functions, command substitutions and
+# commands executed in a subshell environment.
+set -E
+
 _hosts=/etc/hosts
 _hosts_orig=/etc/hosts.orig
 _hosts_deny=/hosts.deny
