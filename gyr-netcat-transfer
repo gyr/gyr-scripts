@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 ################################################################################
 #
-# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# Author: Gustavo Yokoyama Ribeiro <gyr AT protonmail DOT ch>
 # File:  gyr-netcat-transfer
 # Update: 20120531
 # (C) Copyright 2012 Gustavo Yokoyama Ribeiro

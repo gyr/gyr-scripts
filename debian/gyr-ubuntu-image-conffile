@@ -1,7 +1,7 @@
 #!/bin/bash -e
 ################################################################################
 #
-# Author: Gustavo Yokoyama Ribeiro <gustavoyr+ibm AT gmail DOT com>
+# Author: Gustavo Yokoyama Ribeiro <gyr AT protonmail DOT ch>
 # File:  ubuntu-image-conffile
 # Description: Configuration files for ISO image
 # Usage: ubuntu-image-conffile

@@ -1,7 +1,7 @@
 #!/usr/bin/sudo /bin/bash
 ################################################################################
 #
-# Author: Gustavo Yokoyama Ribeiro <gustavoyr+scripts AT gmail DOT com>
+# Author: Gustavo Yokoyama Ribeiro <gyr AT protonmail DOT ch>
 # File:  gyr-update-hosts
 # Update: 20110810
 # Based on https://www.ibm.com/developerworks/mydeveloperworks/blogs/752a690f-8e93-4948-b7a3-c060117e8665/entry/navegacao_mais_segura_e_rapida_com_um_bom_arquivo_hosts?lang=en

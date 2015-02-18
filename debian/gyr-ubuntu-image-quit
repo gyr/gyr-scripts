@@ -1,7 +1,7 @@
 #!/bin/bash
 ################################################################################
 #
-# Author: Gustavo Yokoyama Ribeiro <gustavoyr+ibm AT gmail DOT com>
+# Author: Gustavo Yokoyama Ribeiro <gyr AT protonmail DOT ch>
 # File:  ubuntu-image-quit
 # Description: Quit a ISO image without build it.
 # Usage: ubuntu-image-quit
