@@ -20,18 +20,85 @@ set -u
 # commands executed in a subshell environment.
 set -E
 
-_m_working=90
-_s_working=$((60*${_m_working}))
-_count=0
+# default pomodoro timer
 
-while true; do
-    _date=$(date  +"%H:%M")
-    while [ ${_count} -lt ${_s_working} ]; do
-        echo $((${_count}*100/${_s_working}))
+# 9h00  -> 9h25  W
+# 9h25  -> 9h30  SB
+# 9h30  -> 9h55  W
+# 9h55  -> 10h00 SB
+# 10h00 -> 10h25 W
+# 10h25 -> 10h30 SB
+# 10h30 -> 10h55 W
+# 10h55 -> 11h20 LB <<<
+# 11h20 -> 11h45 W
+# 11h45 -> 11h50 SB
+# 11h50 -> 12h15 W
+# 
+# 
+# 13h00 -> 13h25 W
+# 13h25 -> 13h30 SB
+# 13h30 -> 13h55 W
+# 13h55 -> 14h00 SB
+# 14h00 -> 14h25 W
+# 14h25 -> 14h30 SB
+# 14h30 -> 14h55 W
+# 14h55 -> 15h20 LB <<<
+# 15h20 -> 15h45 W
+# 15h45 -> 15h50 SB
+# 15h50 -> 16h15 W
+# 16h15 -> 16h20 SB
+# 16h20 -> 16h45 W
+# 16h45 -> 16h50 SB
+# 16h50 -> 17h15 W
+# 17h15 -> 17h40 LB <<<
+# 17h40 -> 18h05 W
+
+_m_working=25
+_m_short_break=5
+_m_long_break=25
+_step_stop=5
+_step=1
+
+notifier() {
+    local _title="$1"
+    local _text="$2"
+    local _date=$(date  +"%H:%M")
+
+    echo "\a"
+    notify-send -t 10000 -i gtk-dialog-info "${_text}"
+    zenity --title="${_title}" --question --text="Timer has finished @ ${_date}. Start ${_title}?" || exit 0
+}
+
+timer() {
+    local _title="$1"
+    # time in minutes
+    local _time=$2
+    local _time_sec=$((60*${_time}))
+    local _date=$(date  +"%H:%M")
+    local _count=0
+
+    while [ ${_count} -lt ${_time_sec} ]; do
+        echo $((${_count}*100/${_time_sec}))
         _count=$((${_count}+1))
         sleep 1
-    done | zenity --title="TIMER" --progress --auto-close --text="Timer: ${_m_working} min started @ ${_date}\t"
-    echo "\a"
-    _date=$(date  +"%H:%M")
-    zenity --title="TIMER" --question --text="Timer has finished @ ${_date}. Continue?" || exit 0
+    done | zenity --title="${_title}" --progress --auto-close --text="${_title}: ${_time} min started @ ${_date}\t"
+}
+
+zenity --title="READY" --question --text="Timer ready to start?" || exit 0
+while true; do
+    # working period
+    timer "WORKING (${_step})" ${_m_working}
+    _step=$((${_step}+1))
+
+    if [ ${_step} -lt ${_step_stop} ]; then
+        # short break
+        notifier "SHORT BREAK" "Pomodoro finished (${_step})!Short break :)(${_m_short_break}min)"
+        timer "SHORT BREAK" ${_m_short_break}
+    else
+        # long break
+        notifier "LONG BREAK" "Pomodoro finished!Long break \\o/(${_m_long_break}min)"
+        timer "LONG BREAK" ${_m_long_break}
+        _step=1
+    fi
+    notifier "WORKING (${_step})" "Break finished!Back to work :((${_m_working}min)"
 done
