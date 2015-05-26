@@ -1,0 +1,37 @@
+#!/usr/bin/env sh
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gyr AT protonmail DOT ch>
+# File: gyr-deb-box-update
+# Update: 20150526
+# (C) Copyright 2015 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: wrapper to update, upgrade and clean a debian box
+# Usage: gyr-deb-box-update
+#
+################################################################################
+
+[ $# -eq 1 -a "$1" = '--help' ] && { gyr-print-helper "$0"; exit 0; }
+
+while ! sudo aptitude update -o Acquire::Pdiffs=false -o APT::Color=true; do
+    sleep 1m
+done
+
+#sudo debdelta-upgrade
+
+sudo aptitude -o APT::Color=true safe-upgrade
+
+sudo aptitude -o APT::Color=true remove --purge-unused
+#sudo apt-get autoremove --purge --show-progress -o APT::Color=true
+#sudo apt-get remove --purge --show-progress -o APT::Color=true
+
+sudo aptitude -o APT::Color=true autoclean --purge-unused
+#sudo apt-get autoclean -o APT::Color=true
+
+sudo checkrestart
+
+dpkg -l | grep -v ii
+sudo dpkg --purge $(COLUMNS=200 dpkg -l | grep "^rc" | tr -s ' ' | cut -d ' ' -f 2) 2> /dev/null
+
+sudo deborphan
