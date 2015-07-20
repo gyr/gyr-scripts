@@ -18,7 +18,7 @@ while ! sudo aptitude update -o Acquire::Pdiffs=false -o APT::Color=true; do
     sleep 1m
 done
 
-#sudo debdelta-upgrade
+sudo debdelta-upgrade
 
 sudo aptitude -o APT::Color=true safe-upgrade
 
