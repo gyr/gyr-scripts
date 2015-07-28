@@ -1,0 +1,28 @@
+#!/usr/bin/env sh
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gyr AT protonmail DOT ch>
+# File:  gyr-fed-cleanup
+# Update: 20150728
+# (C) Copyright 2015 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: cleanup not used and orphan packages
+# Usage: gyr-fed-cleanup
+#
+################################################################################
+
+sudo dnf update
+
+# Remover arquivos de configuração não usados
+sudo dnf install rpmconf
+sudo rpmconf -a
+sudo find /etc /var /usr -name "*?.rpmsave" -execdir rm {} \;
+sudo find /etc /var /usr -name "*?.rpmnew" -execdir rm {} \;
+
+# Listar os pacotes não requeridos por outros pacotes
+sudo dnf install yum-utils
+sudo package-cleanup --leaves
+# Remover pacotes órfãos e/ou instalados como dependências de algum outro pacote,
+# mas não mais usados pra nada porque o pacote dependente foi removido:
+sudo package-cleanup --orphans
