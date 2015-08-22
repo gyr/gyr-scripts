@@ -20,16 +20,13 @@ set -u
 # commands executed in a subshell environment.
 set -E
 
-while getopts 'hi' OPT_NAME 2> /dev/null; do
+while getopts 'n' OPT_NAME 2> /dev/null; do
     case ${OPT_NAME} in
-        'h')
-            _target='gyr'
-            ;;
-        'i')
-            _target='ibm'
+        'n')
+            _target='applet'
             ;;
         '?')
-            gyr-print -e ${0##*/} "Invalid option: -${OPTARG}."
+            gyr-print -e ${0##*/} "Invalid option".
             exit 1
             ;;
         ':')
@@ -43,25 +40,24 @@ while getopts 'hi' OPT_NAME 2> /dev/null; do
     esac
 done
 
-gyr-print -i "Terminating previous openconnect..."
-sudo pkill openconnect |:
+gyr-print -i "Finishing previous vnp service..."
+sudo -S kill -9 $(pgrep openconnect) ||:
+gyr-print -i "...[DONE]"
+
 gyr-print -i "Terminating nm-applet..."
 killall nm-applet |:
+gyr-print -i "...[DONE]"
 
 gyr-print -i "Restarting networking.service..."
 sudo systemctl restart networking.service
+gyr-print -i "...[DONE]"
+
 gyr-print -i "Restarting NetworkManager.service..."
 sudo systemctl restart NetworkManager.service
+gyr-print -i "...[DONE]"
 
-if [ "${_target:-gyr}" = 'ibm' ]; then
+if [ "${_target:-gyr}" = 'applet' ]; then
     gyr-print -i "Starting nm-applet..."
     nm-applet &
-    gyr-print -i "BSO authentication..."
-    ibm-bso
-else
-    gyr-print -i "Starting openconnect..."
-    ${HOME}/.ibm.d/scripts/ibm-openconnect-vpnc.pl
+    gyr-print -i "...[DONE]"
 fi
-
-gyr-print -i "Starting keychain..."
-ssh-add
