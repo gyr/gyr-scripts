@@ -29,13 +29,13 @@ set -E
 
 _server_name=
 _remote_host=
-_server_name='GVIM'
+_server_name='GYRGVIM'
 _vim_binary='gvim'
 
 while getopts 'h:f:v' OPT_NAME 2> /dev/null; do
     case ${OPT_NAME} in
         'v')
-            _server_name='VIMGYR'
+            _server_name='GYRVIM'
             _vim_binary='vim'
             ;;
         'h')
