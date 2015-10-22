@@ -40,7 +40,7 @@ while getopts 'n' OPT_NAME 2> /dev/null; do
     esac
 done
 
-gyr-print -i "Finishing previous vnp service..."
+gyr-print -i "Finishing previous vpn service..."
 sudo -S kill -9 $(pgrep openconnect) ||:
 gyr-print -i "...[DONE]"
 

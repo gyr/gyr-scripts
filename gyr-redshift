@@ -25,7 +25,7 @@ set -E
 
 # based on my-redshift from joey hess 
 if ! pidof redshift; then
-    exec redshift -l 36:-30 -r -t 5800:3000 -g 0.9 &
+    exec redshift -l 23:-47 -r -t 5800:3000 -g 0.9 &
 else
     killall redshift ||:
 fi
