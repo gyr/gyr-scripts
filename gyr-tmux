@@ -23,21 +23,26 @@ set -u
 set -E
 
 _base_session="${USER}${HOSTNAME}"
+_client_session=${_base_session}
 
-tmux -q has-session -t ${_base_session} || tmux new-session -d -s ${_base_session}
 
 if [ $# -eq 0 ]; then
-    _client_session=${_base_session}$(date +%S)
     #tmux -2 new-session -d -t ${_base_session} -s ${_client_session} \; set-option -q destroy-unattached \; attach-session -t ${_client_session}
     # since tmux 1.8 -A option is available:
-    exec tmux -2 new-session -A -t ${_base_session} -s ${_client_session} \; set-option -q destroy-unattached
+    ##exec tmux -2 new-session -A -D -t ${_base_session} -s ${_client_session} \; set-option -q destroy-unattached
+    exec tmux -2 new-session -A -D -s ${_client_session}
     #if tmux -q has-session -t $USER@$HOSTNAME; then
     #    exec tmux -2 attach-session -d -t $USER@$HOSTNAME
     #else
     #    exec tmux -2 new-session -s $USER@$HOSTNAME
     #fi
 elif [ $# -ge 1 ]; then
-    exec tmux new-window -c ~ -t ${_base_session} "exec $*"
+    if tmux -q has-session -t ${_base_session}; then
+        tmux new-window -c ~ -t ${_base_session} "exec $*"
+        tmux attach-session -d -t ${_base_session}
+    else
+        exec tmux -2 new-session -A -D -s ${_client_session} "exec $*" \;
+    fi
 else
     gyr-print -e ${0##*/} "Unknown error"
 fi
