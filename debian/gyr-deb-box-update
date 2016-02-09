@@ -36,6 +36,30 @@ sudo aptitude -o DPkg::Progress-Fancy=true -o APT::Color=true autoclean --purge-
 sudo checkrestart
 
 dpkg -l | grep -v ii
-sudo dpkg --purge $(COLUMNS=200 dpkg -l | grep "^rc" | tr -s ' ' | cut -d ' ' -f 2) 2> /dev/null
 
+## list useless configuration files
+#grep-status -n -sPackage -FStatus config-files
+#dpkg-query -f '${Package} ${Status}\n' -W | grep config-files$ | cut -d" " -f1
+#aptitude search ~c
+echo "Config-file packages:"
+aptitude search ?config-files
+## delete useless configuration files
+#sudo dpkg --purge $(COLUMNS=200 dpkg -l | grep "^rc" | tr -s ' ' | cut -d ' ' -f 2) 2> /dev/null
+#sudo aptitude purge ~c
+echo "sudo aptitude purge ?config-files"
+
+
+## list obsolete packages
+#apt-show-versions |grep -v testing
+#aptitude search ~o
+echo "Obsolete packages:"
+aptitude search ?obsolete
+## delete obsolete packages
+#sudo aptitude purge ~o
+#sudo aptitude purge ?obsolete
+echo "sudo aptitude purge ?obsolete"
+
+
+## list orfphan packages
+echo "Ofphan packages:"
 sudo deborphan
