@@ -22,7 +22,7 @@ set -u
 # commands executed in a subshell environment.
 set -E
 
-_base_session="${USER}${HOSTNAME}"
+_base_session="${USER}${HOSTNAME%.*}"
 _client_session=${_base_session}
 
 
