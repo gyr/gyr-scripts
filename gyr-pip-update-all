@@ -20,11 +20,5 @@ set -e
 # commands executed in a subshell environment.
 set -E
 
-if [ -n "${VIRTUAL_ENV}" -o "${GYR_OS}" = 'Darwin' ];then
-    PIP_USER=
-else
-    PIP_USER='--user'
-fi
-
-pip install ${PIP_USER} --upgrade pip
-pip freeze --local ${PIP_USER} | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip install ${PIP_USER} --upgrade
+pip install --user --upgrade pip
+pip freeze --local --user | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip install --user --upgrade

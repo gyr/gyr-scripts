@@ -10,7 +10,7 @@
 
 
 #. ${0%/*}/ubuntu-image-conffile
-. ~/.gyr.d/scripts/debian/gyr-ubuntu-image-conffile
+. ~/.gyr.d/bin/debian/gyr-ubuntu-image-conffile
 
 echo "*** Cleaning/Unsetting chroot..."
 sudo chroot ${EDIT_DIR} <<EOF

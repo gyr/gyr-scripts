@@ -27,6 +27,6 @@ set -E
 if [ -f ~/.yaql.pid ]; then
     zenity  --question --title "Alert"  --text "Reset xterm-dropdown?"
     if [ $? -eq 0 ]; then
-        kill $(cat ~/.yaql.pid) && rm -rf ~/.yaql.pid && xterm -e ${GYR_PATH}/scripts/gyr-screen XTERMDROPDOWN
+        kill $(cat ~/.yaql.pid) && rm -rf ~/.yaql.pid && xterm -e ${GYR_PATH}/bin/gyr-screen XTERMDROPDOWN
     fi
 fi

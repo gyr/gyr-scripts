@@ -26,8 +26,6 @@ start_app()
     fi
 }
 
-#start_app "yeahconsole -e /work/gyr/.gyr.d/scripts/gyr-screen -z"
-
 #CPU_NUMBER=$(cat /proc/cpuinfo | grep processor | wc -l)
 APP_LIST=(
     "/usr/bin/gnome-keyring-daemon --start --components=gpg" \

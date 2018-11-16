@@ -27,5 +27,5 @@ set -E
 if [ -f ~/.yaql.pid ]; then
     bash -c 'kill -USR1 $(cat ~/.yaql.pid)'
 else
-    xterm -e ${GYR_PATH}/scripts/gyr-screen XTERMDROPDOWN
+    xterm -e ${GYR_PATH}/bin/gyr-screen XTERMDROPDOWN
 fi

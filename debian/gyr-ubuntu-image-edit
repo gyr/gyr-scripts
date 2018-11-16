@@ -10,7 +10,7 @@
 
 
 #. ${0%/*}/ubuntu-image-conffile
-. ~/.gyr.d/scripts/debian/gyr-ubuntu-image-conffile
+. ~/.gyr.d/bin/debian/gyr-ubuntu-image-conffile
 
 echo "*** Mounting ${EDIT_DIR}/dev..."
 sudo mount --bind /dev/ ${EDIT_DIR}/dev\

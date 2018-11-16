@@ -49,7 +49,7 @@ get_wid() {
 #if [ -z "${DROP_DOWN_TERM_PID}" ]; then
 get_wid
 if [ -z "${DROP_DOWN_TERM_WID}" ]; then
-    xterm -class ${XTERM_DROPDOWN_CLASS} -e /work/gyr/.gyr.d/scripts/gyr-screen XTERMDROPDOWN &
+    xterm -class ${XTERM_DROPDOWN_CLASS} -e ${GYR_PATH}/bin/gyr-screen XTERMDROPDOWN &
     #get_pid
     sleep 0.1
     get_wid

@@ -10,7 +10,7 @@
 
 
 #. ${0%/*}/ubuntu-image-conffile
-. ~/.gyr.d/scripts/debian/gyr-ubuntu-image-conffile
+. ~/.gyr.d/bin/debian/gyr-ubuntu-image-conffile
 
 echo "ISO image to be used: ${BASE_ISO}"
 read -p "OK? [Yn] "

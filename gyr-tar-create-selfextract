@@ -25,8 +25,7 @@ set -E
 [ $# -ne 1 ] && { gyr-print -e ${0##*/}; exit 1; }
 
 DIR_NAME=$1
-SELF_EXTRACT_SH="${HOME}/.gyr.d/scripts/gyr-tar-selfextract"
-#SELF_EXTRACT_SH="~/.gyr.d/scripts/gyr-tar-selfextract"
+SELF_EXTRACT_SH="${HOME}/.gyr.d/bin/gyr-tar-selfextract"
 SELF_EXTRACT_FILE="selfextract.bsx"
 
 [ ! -d ${DIR_NAME} ] && { echo "${DIR_NAME} does not exist"; exit 1; }
