@@ -1,0 +1,35 @@
+#!/usr/bin/env sh
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gyr AT protonmail DOT ch>
+# File:  gyr-quake
+# Update: 20200526
+# (C) Copyright 2020 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: 
+# Usage: 
+#
+################################################################################
+if hash alacritty 2> /dev/null; then
+    CLASSNAME="AlacrittyQuake"
+    TERMCMD="alacritty --config-file ${GYR_PATH}/dotfiles/alacritty-quake.yml"
+else
+    exit 1
+fi
+
+WINID=$(xdotool search --classname ${CLASSNAME}| head -n 1)
+if [ -z "${WINID}" ]; then
+    ${TERMCMD} &
+    sleep 0.1
+    WINID=$(xdotool search --classname ${CLASSNAME} | head -n 1)
+    xdotool windowfocus ${WINID}
+else
+    if [ "$(xdotool getactivewindow 2>/dev/null)" = "${WINID}" ]; then
+        xdotool windowunmap ${WINID}
+    else
+        xdotool windowunmap ${WINID}
+        xdotool windowmap ${WINID}
+        xdotool windowactivate ${WINID}
+    fi
+fi

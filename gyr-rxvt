@@ -1,0 +1,53 @@
+#!/usr/bin/env sh
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gyr AT protonmail DOT ch>
+# File:  gyr-rxvt
+# Update: 20181129
+# (C) Copyright 2018 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: 
+# Usage: 
+#
+################################################################################
+
+RXVTD="urxvtd-256color -q -o -f"
+
+start_rxvt () {
+    RXVTCMD=$1
+    ${RXVTCMD} 2> /dev/null
+    if [ $? -eq 2 ]; then
+        ${RXVTD}
+        ${RXVTCMD} 2> /dev/null
+    fi
+}
+
+rxvt_quake () {
+    WINID=$(xdotool search --classname urxvtquake | head -n 1)
+    if [ -z "${WINID}" ]; then
+        RXVTCMD="urxvtc-256color -geometry 286x32+1+1 -name urxvtquake -depth 32 -bg rgba:0000/0000/1111/dddd"
+        start_rxvt "${RXVTCMD}"
+        WINID=$(xdotool search --classname urxvtquake | head -n 1)
+        xdotool windowfocus ${WINID}
+    else
+        if [ -z "$(xdotool search --onlyvisible --classname urxvtquake 2>/dev/null | head -n 1)" ]; then
+            xdotool windowmap ${WINID}
+            xdotool windowfocus ${WINID}
+        else
+            xdotool windowunmap ${WINID}
+        fi
+    fi
+}
+
+while getopts "q" opt; do
+    case $opt in
+        q)
+            rxvt_quake
+            exit 0
+            ;;
+    esac
+done
+
+RXVTCMD="urxvtc-256color $@"
+start_rxvt "${RXVTCMD}"
