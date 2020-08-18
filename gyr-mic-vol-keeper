@@ -1,0 +1,29 @@
+#!/usr/bin/env sh
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gyr AT protonmail DOT ch>
+# File:  gyr-mic-vol-keeper
+# Update: 20200818
+# (C) Copyright 2020 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: 
+# Usage: 
+#
+################################################################################
+
+
+# get information about source devices:
+#pacmd list-sources
+#        name: <noechosource>
+#         volume: mono: 50000 /  76%
+#                balance 0.00
+#        base volume: 65536 / 100%
+
+if [ $# -eq 1 ]; then
+    MIC_VOL=$1
+else
+    MIC_VOL=50000
+fi
+
+while sleep 0.1; do pacmd set-source-volume noechosource $MIC_VOL; done
