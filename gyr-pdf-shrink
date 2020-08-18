@@ -1,0 +1,26 @@
+#!/usr/bin/env sh
+################################################################################
+#
+# Author: Gustavo Yokoyama Ribeiro <gyr AT protonmail DOT ch>
+# File:  gyr-pdf-shrink
+# Update: 20200818
+# (C) Copyright 2020 Gustavo Yokoyama Ribeiro
+# Licensed under CreativeCommons Attribution-ShareAlike 3.0 Unsupported
+# http://creativecommons.org/licenses/by-sa/3.0/ for more info.
+# Description: 
+# Usage: 
+#
+################################################################################
+
+# https://opensource.com/article/20/8/reduce-pdf
+
+#pdf2ps -dLanguageLevel=3 input.pdf
+#ps2pdf -dPDFSETTINGS=/ebook -sOutputFile=output.pdf input.ps
+
+#or
+#ps2pdf -dPDFSETTINGS=/ebook -sOutputFile=output.pdf input.pdf
+
+#or
+gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/ebook \
+-dNOPAUSE -dBATCH -dColorImageResolution=150 \
+-sOutputFile=output.pdf $1
