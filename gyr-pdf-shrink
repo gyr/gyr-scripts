@@ -13,14 +13,31 @@
 ################################################################################
 
 # https://opensource.com/article/20/8/reduce-pdf
+INPUT=$1
+INPUT_PS=${INPUT%.pdf}.ps
 
-#pdf2ps -dLanguageLevel=3 input.pdf
-#ps2pdf -dPDFSETTINGS=/ebook -sOutputFile=output.pdf input.ps
+pdf2ps -dLanguageLevel=3 ${INPUT}
+ps2pdf -dPDFSETTINGS=/ebook -sOutputFile=output00.pdf ${INPUT_PS}
+rm -f ${INPUT_PS}
 
 #or
-#ps2pdf -dPDFSETTINGS=/ebook -sOutputFile=output.pdf input.pdf
-
+#ps2pdf -dPDFSETTINGS=/ebook -sOutputFile=output01.pdf input.pdf
 #or
-gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/ebook \
--dNOPAUSE -dBATCH -dColorImageResolution=150 \
--sOutputFile=output.pdf $1
+#gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/ebook \
+#-dNOPAUSE -dBATCH -dColorImageResolution=150 \
+#-sOutputFile=output02.pdf input.pdf
+
+# concatenate
+#pdfunite input_{1,2,3,4,5,6}.pdf output.pdf
+#or
+#gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile=saida.pdf file1.pdf file2.pdf file3.pdf
+
+# convert image in pdf
+#convert input_{1,2,3,4,5,6}.jpg output.pdf
+
+# rotate 90 clockwise
+#pdftk input.pdf cat 1-endeast output output.pdf
+
+# rotate 90 counterclockwise
+#pdftk input.pdf cat 1-endwest output output.pdf
+
