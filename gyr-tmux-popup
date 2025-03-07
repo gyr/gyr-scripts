@@ -7,9 +7,9 @@ CURRENT_PANE="$(tmux display-message -p -F "#{session_name}")"
 if echo "$CURRENT_PANE" | grep -q '^gyr-popup.*'; then
     tmux detach-client
 else
-    if [ "$1" = "single" ]; then
-        tmux popup -d '#{pane_current_path}' -x100% -y0% -w50% -h50% -E "tmux attach -t 'gyr-popup-$CURRENT_PANE' || tmux new -s 'gyr-popup-$CURRENT_PANE'" || true
+    if [ "$1" = "local" ]; then
+        tmux popup -T LOCAL -d '#{pane_current_path}' -x100% -y0% -w50% -h50% -E "tmux attach -t 'gyr-popup-$CURRENT_PANE' || tmux new -s 'gyr-popup-$CURRENT_PANE'" || true
     else
-        tmux popup -x100% -y0% -w50% -h50% -E "tmux attach -t gyr-popup-master || tmux new -s gyr-popup-master" || true
+        tmux popup -T GLOBAL -x100% -y0% -w50% -h50% -E "tmux attach -t gyr-popup-global || tmux new -s gyr-popup-global" || true
     fi
 fi
